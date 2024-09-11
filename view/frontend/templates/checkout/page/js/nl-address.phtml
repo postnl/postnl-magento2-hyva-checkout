@@ -1,0 +1,141 @@
+<?php
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\Escaper;
+use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
+use PostNL\HyvaCheckout\ViewModel\CheckoutView;
+
+/** @var Template $block */
+/** @var Escaper $escaper */
+/** @var ViewModelRegistry $viewModels */
+/** @var CheckoutView $checkoutView */
+
+$checkoutView = $viewModels->require(CheckoutView::class);
+?>
+
+<script>
+    function postnlAddressValidation(wire, options = {}) {
+        let inputChangeTimeout = null;
+
+        return {
+            address: {
+                postnl_postcode: wire.address.postnl_postcode,
+                postnl_housenumber: wire.address.postnl_housenumber
+            },
+
+            searches: 0,
+            postcodeRegex: /[1-9][0-9]{3}\s*[a-z]{2}/i,
+            houseNumberRegex: /[1-9]\d{0,4}(?:\D.*)?$/i,
+
+            initialize: function() {
+                options = Object.assign(this.getOptions(), options)
+
+                Object.keys(this.address).forEach((key) => this.$watch(`address.${ key }`, function(newValue, previousValue) {
+                    this.onChangeInput(key, newValue, previousValue)
+                }.bind(this)))
+            },
+
+            onChangeInput: async function(ref, newValue, previousValue) {
+                if (typeof ref !== 'string') {
+                    return ;
+                }
+                clearTimeout(inputChangeTimeout);
+
+                try {
+                    const validationResults = await Promise.all(
+                        Object.values(options.validators).map(fn => fn(ref, newValue, previousValue, options))
+                    );
+
+                    if (validationResults.every(r => r === true)) {
+                        inputChangeTimeout = setTimeout(async () => {
+                            const postcode = this.address.postnl_postcode.trim();
+                            const houseNumber = this.address.postnl_housenumber.trim();
+                            const url = `<?= $escaper->escapeJs($checkoutView->getCheckoutUrl('address_postcode')) ?>`;
+
+                            const apiResponse = await fetch(url + '?' + new URLSearchParams({
+                                postcode: postcode,
+                                housenumber: houseNumber
+                            }));
+                            const response = await apiResponse.json();
+                            debugger;
+
+                            if (response.status !== undefined) {
+                                let message = '<?= $escaper->escapeJs(__('Unexpected error occurred. Please fill in the address details manually.')) ?>';
+                                if (response.status === 'error' && response.error !== undefined) {
+                                    message = response.error;
+                                }
+                                if (response.status === false) {
+                                    message = '<?= $escaper->escapeJs(__('Sorry, we could not find your address with the zipcode and housenumber combination. If you are sure that the zipcode and housenumber are correct, please fill in the address details manually.')) ?>';
+                                    response.status = 'warning';
+                                }
+                                this.dispatchMessage(message, response.status);
+                                return;
+                            }
+
+                            const address = this.getAddressParts(response);
+
+                            wire.sync('address.<?= $escaper->escapeJs(CheckoutFieldsApi::POSTNL_POSTCODE) ?>', JSON.stringify(address));
+
+                        }, options.validationTimeout);
+
+                        return true;
+                    }
+
+                    return false;
+                } catch (error) {
+                    this.dispatchMessage(error.message || error);
+                }
+            },
+
+            getAddressParts: function (address) {
+                const houseNumber = `${address.houseNumber || ''}`,
+                    houseNumberAddition = wire.address.postnl_housenumber_addition;
+
+                return {
+                    street: address.streetName,
+                    houseNumber: houseNumber,
+                    houseNumberAddition: houseNumberAddition,
+                    postcode: address.postalCode,
+                    city: address.city
+                };
+            },
+
+            getOptions: function() {
+                return {
+                    validationTimeout: 1500,
+                    messengerBlockEventPrefix: 'address:postnl-validation',
+
+                    validators: {
+                        validateValidAddressInput: (ref, value) => {
+                            if (ref === "<?= $escaper->escapeJs(CheckoutFieldsApi::POSTNL_POSTCODE) ?>") {
+                                return !value || this.postcodeRegex.test(value);
+                            }
+                            else if (ref === "<?= $escaper->escapeJs(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER) ?>") {
+                                return !value || this.houseNumberRegex.test(value);
+                            }
+                            return false;
+                        },
+                        validateHTMLSelectElement: (ref) => {
+                            if (!(ref in this.address)) {
+                                return false;
+                            }
+
+                            return this.$refs[ref].checkValidity();
+                        },
+                        validateDifference: (ref, newValue, previousValue) => {
+                            return newValue !== previousValue
+                        },
+                        validateCompletion: () => {
+                            return Object.values(this.address).every(value => typeof value === 'string' && value.trim() !== '')
+                        }
+                    }
+                }
+            },
+
+            dispatchMessage: function(message, type = 'error') {
+                type = ['error', 'warning', 'success', 'info'].includes(type) ? type : 'info'
+                hyvaCheckout.message.dispatch(`${options.messengerBlockEventPrefix }:error`, message, type)
+            }
+        }
+    }
+</script>

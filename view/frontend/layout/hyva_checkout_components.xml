@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="checkout.shipping.methods">
+            <block name="checkout.shipping.method.tig_postnl_regular"
+                   as="tig_postnl_regular"
+                   template="PostNL_HyvaCheckout::component/shipping/method/tig_postnl_regular.phtml">
+                <arguments>
+                    <argument name="magewire" xsi:type="object">
+                        PostNL\HyvaCheckout\Magewire\ShippingMethod
+                    </argument>
+                    <argument name="metadata" xsi:type="array">
+                        <item name="subtitle" xsi:type="string">Metadata subtitle</item>
+                    </argument>
+                </arguments>
+                <block name="checkout.shipping.method.tig_postnl_regular.delivery.timeframe"
+                       as="select-delivery-timeframe"
+                       template="PostNL_HyvaCheckout::magewire/select-shipping-timeframe.phtml">
+                    <arguments>
+                        <argument name="magewire" xsi:type="object">
+                            PostNL\HyvaCheckout\Magewire\SelectTimeframe
+                        </argument>
+                    </arguments>
+                </block>
+                <block name="checkout.shipping.method.tig_postnl_regular.pickup.locations"
+                       as="select-pickup-location"
+                       template="PostNL_HyvaCheckout::magewire/select-pickup-location.phtml">
+                    <arguments>
+                        <argument name="magewire" xsi:type="object">
+                            PostNL\HyvaCheckout\Magewire\SelectPickup
+                        </argument>
+                    </arguments>
+                </block>
+<!--                <block name="checkout.shipping.method.tig_postnl_regular.modal"-->
+<!--                       as="modal"-->
+<!--                       template="Hyva_PostNL::magewire/locations-modal.phtml">-->
+<!--                    <arguments>-->
+<!--                        <argument name="magewire" xsi:type="object">-->
+<!--                            Hyva\PostNL\Magewire\LocationsModal-->
+<!--                        </argument>-->
+<!--                    </arguments>-->
+<!--                </block>-->
+<!--                <block name="checkout.shipping.method.tig_postnl_regular.selected-pickup-point"-->
+<!--                       as="selected-pickup-point"-->
+<!--                          template="Hyva_PostNL::magewire//selected-pickup-point.phtml">-->
+<!--                    <arguments>-->
+<!--                        <argument name="magewire" xsi:type="object">-->
+<!--                            Hyva\PostNL\Magewire\SelectedPickupPoint-->
+<!--                        </argument>-->
+<!--                    </arguments>-->
+<!--                </block>-->
+            </block>
+        </referenceBlock>
+    </body>
+</page>

@@ -1,0 +1,22 @@
+{
+    "name": "postnl/module-hyva-checkout",
+    "version": "1.0.0",
+    "description": "N/A",
+    "type": "magento2-module",
+    "require": {
+        "magento/framework": "*",
+        "hyva-themes/magento2-hyva-checkout": ">=1.1",
+        "tig/postnl-magento2": ">=1.16.0"
+    },
+    "license": [
+        "Proprietary"
+    ],
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "PostNL\\HyvaCheckout\\": ""
+        }
+    }
+}

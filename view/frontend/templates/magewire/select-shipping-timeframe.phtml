@@ -1,0 +1,60 @@
+<?php
+use PostNL\HyvaCheckout\Magewire\SelectTimeframe;
+use PostNL\HyvaCheckout\ViewModel\CheckoutView;
+use PostNL\HyvaCheckout\ViewModel\ShippingView;
+
+/** @var \Magento\Framework\Escaper $escaper */
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Hyva\Theme\Model\ViewModelRegistry $viewModels */
+/** @var SelectTimeframe $magewire */
+/** @var CheckoutView $checkoutView */
+
+/** @var \Hyva\PostNL\ViewModel\Location $locationViewModel */
+//$locationViewModel = $viewModels->require(\Hyva\PostNL\ViewModel\Location::class);
+$checkoutView = $viewModels->require(CheckoutView::class);
+
+/** @var ShippingView $shippingViewModel */
+$shippingViewModel = $viewModels->require(ShippingView::class);
+
+?>
+<div>
+    <?php if ($magewire->isOpen() && $shippingViewModel->getDeliveryPrice()): ?>
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="sm:flex sm:items-start">
+                <div class="w-full">
+                    <?php foreach ($magewire->getTimeframes() as $dayData): ?>
+                    <?php if ($dayData->getDate()): ?>
+                            <strong>
+                                <span class="deliverydays-day"><?= $escaper->escapeHtml($dayData->getWeekDay()) ?></span>
+                                <span class="deliverydays-date"><?= $escaper->escapeHtml($dayData->getDate()) ?></span>
+                            </strong>
+                    <?php endif; ?>
+                    <ul class="flex flex-col gap-2 p-4 mt-2">
+                        <?php foreach ($dayData->getOptions() as $optionTimeframe): ?>
+                        <li>
+                            <input type="radio"
+                                   id="timeframe-<?= $escaper->escapeHtmlAttr($optionTimeframe->getValue()) ?>"
+                                   value="<?= $escaper->escapeHtmlAttr($optionTimeframe->getValue()) ?>"
+                                   class="peer"
+                                   required
+                                   wire:model="deliveryTimeframe">
+
+                            <label for="timeframe-<?= $escaper->escapeHtmlAttr($optionTimeframe->getValue()) ?>"
+                                   class="timeframe-btn">
+                                <span><?= $escaper->escapeHtml($optionTimeframe->getLabel()) ?></span>
+                                <?php if ($optionTimeframe->getRightLabel()): ?>
+                                    <span><?= $escaper->escapeHtml($optionTimeframe->getRightLabel()) ?></span>
+                                    <?php if ($optionTimeframe->getFee()): ?>
+                                        (<span class="price">+ <?= $escaper->escapeHtml($optionTimeframe->getFee()) ?></span>)
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                            </label>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+</div>

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="entity-form.field-renderers">
+            <block name="form-field.postnl_container.address"
+                   as="postnl_address"
+                   template="PostNL_HyvaCheckout::form/field/nl-fields.phtml"
+            >
+                <block name="component-messenger-address-auto-complete"
+                       as="messenger"
+                       template="Hyva_Checkout::page/messenger.phtml"
+                >
+                    <arguments>
+                        <argument name="event_prefix" xsi:type="string">address:postnl-validation</argument>
+                    </arguments>
+                </block>
+            </block>
+        </referenceBlock>
+
+        <referenceContainer name="hyva.checkout.api-v1.after">
+            <block name="hyva.checkout.postnl-autocomplete"
+                   template="PostNL_HyvaCheckout::checkout/page/js/nl-address.phtml"
+            />
+        </referenceContainer>
+
+    </body>
+</page>

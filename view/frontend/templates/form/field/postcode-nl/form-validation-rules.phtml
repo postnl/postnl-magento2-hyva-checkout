@@ -1,0 +1,43 @@
+<?php
+/**
+ * Hyvä Themes - https://hyva.io
+ * Copyright © Hyvä Themes 2022-present. All rights reserved.
+ * This product is licensed per Magento install
+ * See https://hyva.io/license
+ */
+
+declare(strict_types=1);
+
+/** @var Escaper $escaper */
+
+use Magento\Framework\Escaper;
+?>
+
+<script>
+    (() => {
+        if (hyva && hyva.formValidation) {
+
+            hyva.formValidation.addRule('validate-postcode', function(value, options, field, context) {
+                const postcodeRegex = /[1-9][0-9]{3}\s*[a-z]{2}/i;
+                const isValidPostcode = postcodeRegex.test(value);
+
+                if (!value || isValidPostcode) {
+                    return true;
+                } else {
+                    return '<?= $escaper->escapeJs(__('Please enter a valid zip/postal code.')); ?>';
+                }
+            });
+
+            hyva.formValidation.addRule('validate-house-number', function(value, options, field, context) {
+                const houseNumberRegex = /[1-9]\d{0,4}(?:\D.*)?$/i;
+                const isHouseNumberValid = houseNumberRegex.test(value)
+
+                if (!value || isHouseNumberValid) {
+                    return true;
+                } else {
+                    return '<?= $escaper->escapeJs(__('Please enter a valid house number.')); ?>';
+                }
+            })
+        }
+    })();
+</script>

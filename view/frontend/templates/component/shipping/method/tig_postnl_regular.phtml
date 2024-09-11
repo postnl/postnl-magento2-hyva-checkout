@@ -1,0 +1,57 @@
+<?php
+use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
+use PostNL\HyvaCheckout\ViewModel\ShippingView;
+
+/** @var \Magento\Framework\Escaper $escaper */
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Hyva\Theme\Model\ViewModelRegistry $viewModels */
+/** @var \PostNL\HyvaCheckout\Magewire\ShippingMethod $magewire */
+/** @var ShippingView $shippingViewModel */
+
+$shippingViewModel = $viewModels->require(ShippingView::class);
+$price = $shippingViewModel->getDeliveryPrice();
+$pickupPrice = $shippingViewModel->getPickupPrice();
+?>
+<div>
+    <div class="flex flex-col gap-1">
+        <div class="flex flex-col lg:flex-row gap-2 mt-4 text-sm">
+            <div class="flex-auto">
+                <input wire:model="type"
+                       type="radio"
+                       id="<?= CheckoutFieldsApi::DELIVERY_TYPE_DELIVERY ?>"
+                       value="<?= CheckoutFieldsApi::DELIVERY_TYPE_DELIVERY ?>"
+                       class="hidden peer"
+                       required>
+                <label for="<?= CheckoutFieldsApi::DELIVERY_TYPE_DELIVERY ?>"
+                       class="postnl-type-selection <?= $magewire->isDelivery() ? '!text-grey !border-postnl-orange ' : '' ?>">
+                    <div class="flex flex-col gap-2">
+                        <span <?= $magewire->isDelivery() ? 'class="font-bold"' : ''?>><?= $escaper->escapeHtml(__('Delivery')) ?></span>
+                        <?php if ($price): ?>
+                        <span class="price"><?= $escaper->escapeHtml($magewire->getDeliveryPrice()) ?></span>
+                        <?php endif; ?>
+                    </div>
+                </label>
+            </div>
+
+            <?php if ($magewire->canDisplayPickup()): ?>
+                <div class="flex-auto">
+                    <input wire:model="type"
+                           type="radio"
+                           id="<?= CheckoutFieldsApi::DELIVERY_TYPE_PICKUP ?>"
+                           value="<?= CheckoutFieldsApi::DELIVERY_TYPE_PICKUP ?>"
+                           class="hidden peer">
+                    <label for="<?= CheckoutFieldsApi::DELIVERY_TYPE_PICKUP ?>"
+                           class="postnl-type-selection <?= $magewire->isPickup() ? '' : '' ?>">
+                        <div class="flex flex-col gap-2">
+                            <span <?= $magewire->isPickup() ? 'class="font-bold"' : ''?>><?= $escaper->escapeHtml(__('Pickup')) ?></span>
+                            <?php if ($pickupPrice): ?>
+                                <span class="price"><?= $escaper->escapeHtml($magewire->getPickupPrice()) ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </label>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?= /* @noEscape */ $block->getChildHtml('select-delivery-timeframe') ?>
+    </div>
+</div>

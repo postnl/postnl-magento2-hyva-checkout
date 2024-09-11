@@ -1,0 +1,4 @@
+.postnl-type-selection {
+    @apply flex justify-between p-5 border-2 border-postnl-gray-lighter rounded-lg cursor-pointer bg-white
+    hover:border-postnl-orange text-postnl-gray-middle
+}

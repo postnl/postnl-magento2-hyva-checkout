@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Hyva\Checkout\Model\Form\EntityForm\EavAttributeShippingAddressForm">
+        <arguments>
+            <argument name="entityFormModifiers" xsi:type="array">
+                <item name="postnl_form_changes" sortOrder="1001" xsi:type="object">
+                    PostNL\HyvaCheckout\Model\Form\EntityFormModifier\AddressChanges
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Hyva\Checkout\ViewModel\Checkout\Shipping\MethodList">
+        <plugin name="extend_shipping_price"
+                type="PostNL\HyvaCheckout\Plugin\HyvaCheckout\ViewModel\MethodListPlugin"
+                sortOrder="100" />
+    </type>
+
+    <!--    <type name="Hyva\Checkout\Model\Form\EntityForm\EavAttributeBillingAddressForm">-->
+    <!--        <arguments>-->
+    <!--            <argument name="entityFormModifiers" xsi:type="array">-->
+    <!--            </argument>-->
+    <!--        </arguments>-->
+    <!--    </type>-->
+</config>
