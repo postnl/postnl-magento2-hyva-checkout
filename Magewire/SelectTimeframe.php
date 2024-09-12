@@ -97,18 +97,27 @@ class SelectTimeframe extends Component
 
     private function checkShippingSelected(\Magento\Quote\Api\Data\CartInterface $quote): bool
     {
-        $extAtributes = $quote->getExtensionAttributes();
-        if (!$extAtributes) {
+        $extAttributes = $quote->getExtensionAttributes();
+        if (!$extAttributes) {
             return false;
         }
-        $assignments = $extAtributes->getShippingAssignments();
+        $assignments = $extAttributes->getShippingAssignments();
         if (!$assignments || !isset($assignments[0])) {
             return false;
         }
         $shipping = $assignments[0]->getShipping();
         if ($shipping && $shipping->getMethod() === CheckoutFieldsApi::SHIPPING_CODE) {
-            // @todo sometimes pickup can be default
-            $this->deliverySelected = true;
+            // Check if postnl order exists and selected
+            $postnlOrder = $this->postnlOrderRepository->getByQuoteId($quote->getId());
+            if ($postnlOrder->getEntityId()) {
+                if ($postnlOrder->getType() !== 'PG') {
+                    $this->deliverySelected = true;
+                }
+            } else {
+                // Default display
+                // @todo sometimes pickup can be default
+                $this->deliverySelected = true;
+            }
         }
         return true;
     }

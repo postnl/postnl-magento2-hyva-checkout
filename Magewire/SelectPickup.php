@@ -7,21 +7,24 @@ use Magento\Framework\Exception\LocalizedException;
 use Magewirephp\Magewire\Component;
 use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
 use PostNL\HyvaCheckout\Model\QuoteOrderRepository;
-use PostNL\HyvaCheckout\Model\Shipping\Delivery;
+use PostNL\HyvaCheckout\Model\Shipping\Pickup\Location;
 use PostNL\HyvaCheckout\ViewModel\ShippingView;
 use TIG\PostNL\Service\Action\OrderSave;
-use TIG\PostNL\Service\Order\FeeCalculator;
 use TIG\PostNL\Service\Shipping\LetterboxPackage;
-use TIG\PostNL\Service\Timeframe\Resolver;
+use TIG\PostNL\Service\Shipping\PickupLocations;
 
 class SelectPickup extends Component
 {
     public bool $pickupSelected = false;
+    public string $editMode = '1';
 
     public string $locationId = '';
 
+    public ?Location $location = null;
+
     protected $listeners = [
-        'postnl_select_delivery_type' => 'init'
+        'postnl_select_delivery_type' => 'init',
+        'postnl_pickup_selected' => 'refresh'
     ];
 
     protected $loader = [
@@ -33,7 +36,7 @@ class SelectPickup extends Component
     private OrderSave $orderSave;
     private \Magento\Framework\Pricing\Helper\Data $priceHelper;
     private LetterboxPackage $letterboxPackage;
-    private ShippingView $shippingView;
+    private PickupLocations $pickupLocations;
 
     public function __construct(
         CheckoutSession $checkoutSession,
@@ -41,6 +44,7 @@ class SelectPickup extends Component
         OrderSave $orderSave,
         \Magento\Framework\Pricing\Helper\Data $priceHelper,
         LetterboxPackage $letterboxPackage,
+        PickupLocations $pickupLocations,
         ShippingView $shippingView
     ) {
         $this->checkoutSession = $checkoutSession;
@@ -48,13 +52,13 @@ class SelectPickup extends Component
         $this->orderSave = $orderSave;
         $this->priceHelper = $priceHelper;
         $this->letterboxPackage = $letterboxPackage;
-        $this->shippingView = $shippingView;
+        $this->pickupLocations = $pickupLocations;
     }
 
     public function boot(): void
     {
         $quote = $this->checkoutSession->getQuote();
-        //$this->checkShippingSelected($quote);
+        $this->checkShippingSelected($quote);
         $this->checkOptionSelected($quote);
     }
 
@@ -73,10 +77,15 @@ class SelectPickup extends Component
         return $this->pickupSelected;
     }
 
+    public function isEditMode(): bool
+    {
+        return $this->editMode !== '0';
+    }
+
     public function isLetterboxPackage(): bool
     {
         $products = $this->checkoutSession->getQuote()->getAllItems();
-        return $this->letterboxPackage->isLetterboxPackage($products);
+        return $this->letterboxPackage->isLetterboxPackage($products, false);
     }
 
     /**
@@ -93,36 +102,96 @@ class SelectPickup extends Component
             'postcode' => $shippingAddress->getPostcode(),
             'city' => $shippingAddress->getCity(),
         ];
-        return $timeframes;
+        $locations = $this->pickupLocations->get($data);
+        return $this->convertResponse($locations);
+    }
+
+    public function getPickupDate(): string
+    {
+        return $this->pickupLocations->getLastDeliveryDate();
+    }
+
+    public function getSelectedLocation(): ?Location
+    {
+        if ($this->location !== null) {
+            return $this->location;
+        }
+        if (!$this->locationId) {
+            return null;
+        }
+        return $this->getLocationById($this->locationId);
     }
 
     private function checkShippingSelected(\Magento\Quote\Api\Data\CartInterface $quote): bool
     {
-        $extAtributes = $quote->getExtensionAttributes();
-        if (!$extAtributes) {
+        $extAttributes = $quote->getExtensionAttributes();
+        if (!$extAttributes) {
             return false;
         }
-        $assignments = $extAtributes->getShippingAssignments();
+        $assignments = $extAttributes->getShippingAssignments();
         if (!$assignments || !isset($assignments[0])) {
             return false;
         }
         $shipping = $assignments[0]->getShipping();
         if ($shipping && $shipping->getMethod() === CheckoutFieldsApi::SHIPPING_CODE) {
-            // @todo sometimes pickup can be default
-            $this->pickupSelected = false;
+            // Check if postnl order exists and selected
+            $postnlOrder = $this->postnlOrderRepository->getByQuoteId($quote->getId());
+            if ($postnlOrder->getEntityId()) {
+                if ($postnlOrder->getType() === 'PG') {
+                    $this->pickupSelected = true;
+                }
+            } else {
+                // Default display
+                // @todo sometimes pickup can be default
+                $this->pickupSelected = false;
+            }
         }
         return true;
     }
 
-    public function updatedLocationId($value)
+    public function updatedEditMode($value): string
     {
-        $quote = $this->checkoutSession->getQuote();
-        if (!$this->checkShippingSelected($quote)) {
-            return $value;
+        if ((int)$value > 0) {
+            //$this->emit('postnl_pickup_selected');
         }
+        return $value;
+    }
+
+    public function updatedLocationId($value): string
+    {
+        $value = (int)$value;
+        if (!$value) {
+            return '';
+        }
+        $pickupLocation = $this->getLocationById($value);
+        if (!$pickupLocation) {
+            return '';
+        }
+        $quote = $this->checkoutSession->getQuote();
+
+        // Simulate request data from Magento checkout
+        $shipping = $quote->getShippingAddress();
+        $street = $shipping->getStreet();
+        $request = [
+            'type' => CheckoutFieldsApi::DELIVERY_TYPE_PICKUP,
+            'option' => 'PG', // Always
+            'LocationCode' => $value,
+            'RetailNetworkID' => $pickupLocation->getNetworkId(),
+            'country' => $shipping->getCountryId(),
+            'quote_id' => $quote->getId(),
+            'address' => $pickupLocation->getAddressArray(),
+            'customerData' => [
+                'country' => $shipping->getCountryId(),
+                'street' => $shipping->getStreet(),
+                'postcode' => $shipping->getPostcode(),
+                'housenumber' => $street[1] ?? '',
+                'firstname' => $shipping->getFirstname(),
+                'lastname' => $shipping->getLastname(),
+                'telephone' => $shipping->getTelephone()
+            ]
+        ];
 
         $postnlOrder = $this->postnlOrderRepository->getByQuoteId($quote->getId());
-        $originalFee = (float)$postnlOrder->getFee();
         try {
             $this->orderSave->saveDeliveryOption($postnlOrder, $request);
         } catch (LocalizedException $e) {
@@ -130,50 +199,31 @@ class SelectPickup extends Component
         } catch (\Exception $e) {
             throw new LocalizedException(__('Failed to save postnl order information.'));
         }
+        //$this->location = $pickupLocation;
+        $this->editMode = 0;
         // Trigger updates on related blocks
         $this->emit('shipping_method_selected');
+        $this->emit('postnl_pickup_selected');
 
-        return $value;
+        return (string)$value;
     }
 
+    private function getLocationById(int $locationId): ?Location
+    {
+        $locations = $this->getLocations();
+        return $locations[$locationId] ?? null;
+    }
 
     /**
-     * @param array $timeframes
-     * @return Delivery\Day[]
+     * @param \stdClass[] $locations
+     * @return Location[]
      */
-    private function convertResponse(array $timeframes): array
+    private function convertResponse(array $locations): array
     {
-        $timeframes = $timeframes['timeframes'] ?? [];
-        $types = $timeframes[0][0] ?? [];
-        // Check if it's one of the fallbacks responses
-        if (!empty($types) && count($timeframes) === 1 && count($types) === 1) {
-            $type = current($types);
-            $key = key($types);
-            $timeframe = new Delivery\Timeframe($key, $type);
-            $day = new Delivery\Day([$timeframe]);
-            return [$day];
-        }
         $result = [];
-        foreach ($timeframes as $dayData) {
-            $options = [];
-            foreach ($dayData as $dayInfo) {
-                $key = [
-                    $dayInfo['option'],
-                    $dayInfo['date'],
-                    $dayInfo['from'],
-                    $dayInfo['to'],
-                ];
-                $fee = $this->feeCalculator->get($dayInfo);
-                $timeframe = new Delivery\Timeframe(
-                    implode('_', $key),
-                    $dayInfo['from_friendly'] . ' - ' . $dayInfo['to_friendly'],
-                    $dayInfo['option'] ?? null,
-                    $fee > 0 ? $this->priceHelper->currency($fee,true,false) : null
-                );
-                $options[] = $timeframe;
-            }
-            $day = new Delivery\Day($options, $dayInfo['date'] ?? '', $dayInfo['day'] ?? '');
-            $result[] = $day;
+        foreach ($locations as $location) {
+            $location = new Location($location);
+            $result[$location->getValue()] = $location;
         }
         return $result;
     }
@@ -182,6 +232,8 @@ class SelectPickup extends Component
     {
         $postnlOrder = $this->postnlOrderRepository->getByQuoteId($quote->getId());
         if (!$this->locationId && $postnlOrder->getEntityId() && $postnlOrder->getType()) {
+            $this->locationId = $postnlOrder->getPgLocationCode();
+            $this->editMode = '0';
         }
     }
 

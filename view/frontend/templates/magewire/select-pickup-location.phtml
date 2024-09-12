@@ -21,39 +21,91 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <div class="sm:flex sm:items-start">
                 <div class="w-full">
-                    <?php if ($magewire->isLetterboxPackage()): ?>
+                    <?php if (!$magewire->isEditMode() && $location = $magewire->getSelectedLocation()): ?>
+                        <strong>
+                            <span><?= $escaper->escapeHtml('Pickup') ?>:</span>
+                        </strong>
+                        <div>
+                            <strong>
+                                <span class="tig-postnl-pickup-name"><?= $escaper->escapeHtml($location->getName()) ?></span>
+                                <span class="tig-postnl-distance"><?= $escaper->escapeHtml($location->getDistance()) ?></span>
+                            </strong>
+                            <div class="tig-postnl-address-container">
+                                <span class="tig-postnl-pickup-street"><?= $escaper->escapeHtml($location->getStreet()) ?></span>
+                                <span class="tig-postnl-pickup-number"><?= $escaper->escapeHtml($location->getHouseNumber()) ?></span>
+                                <span class="tig-postnl-pickup-number-addition"><?= $escaper->escapeHtml($location->getHouseNumberExt()) ?></span>
+                                <span class="tig-postnl-pickup-city"><?= $escaper->escapeHtml($location->getCity()) ?></span>
+                            </div>
+                        </div>
+                        <div>
+                            <input type="radio"
+                                   id="edit-location"
+                                   value="1"
+                                   class="hidden peer"
+                                   wire:model="editMode">
+                            <label for="edit-location"><?= $escaper->escapeHtml(__('Change location')) ?></label>
+                        </div>
+                    <?php elseif ($magewire->isLetterboxPackage()): ?>
                         <strong><span><?= __('Pickup locations are disabled for Letterbox packages.') ?></span></strong>
                     <?php else: ?>
-                        <?php foreach ($magewire->getLocations() as $dayData): ?>
-                        <?php if ($dayData->getDate()): ?>
-                                <strong>
-                                    <span class="deliverydays-day"><?= $escaper->escapeHtml($dayData->getWeekDay()) ?></span>
-                                    <span class="deliverydays-date"><?= $escaper->escapeHtml($dayData->getDate()) ?></span>
-                                </strong>
-                        <?php endif; ?>
-                        <ul class="flex flex-col gap-2 p-4 mt-2">
-                            <?php foreach ($dayData->getOptions() as $optionTimeframe): ?>
-                            <li>
-                                <input type="radio"
-                                       id="timeframe-<?= $escaper->escapeHtmlAttr($optionTimeframe->getValue()) ?>"
-                                       value="<?= $escaper->escapeHtmlAttr($optionTimeframe->getValue()) ?>"
-                                       class="peer"
-                                       required
-                                       wire:model="deliveryTimeframe">
+                        <?php foreach ($magewire->getLocations() as $location): ?>
+                            <div class="tig-postnl-pickup-row">
 
-                                <label for="timeframe-<?= $escaper->escapeHtmlAttr($optionTimeframe->getValue()) ?>"
-                                       class="timeframe-btn">
-                                    <span><?= $escaper->escapeHtml($optionTimeframe->getLabel()) ?></span>
-                                    <?php if ($optionTimeframe->getRightLabel()): ?>
-                                        <span><?= $escaper->escapeHtml($optionTimeframe->getRightLabel()) ?></span>
-                                        <?php if ($optionTimeframe->getFee()): ?>
-                                            (<span class="price">+ <?= $escaper->escapeHtml($optionTimeframe->getFee()) ?></span>)
-                                        <?php endif; ?>
-                                    <?php endif; ?>
+                                <!-- NAME & DISTANCE -->
+                                <strong>
+                                    <span class="tig-postnl-pickup-name"><?= $escaper->escapeHtml($location->getName()) ?></span>
+                                    <span class="tig-postnl-distance"><?= $escaper->escapeHtml($location->getDistance()) ?></span>
+                                </strong>
+
+                                <!-- DEFAULT PICKUP -->
+                                <label>
+                                    <input type="radio"
+                                           id="location-<?= $escaper->escapeHtmlAttr($location->getValue()) ?>"
+                                           value="<?= $escaper->escapeHtmlAttr($location->getValue()) ?>"
+                                           class="peer"
+                                           required
+                                           wire:model="locationId">
+
+                                    <!-- ADDRESS -->
+                                    <div class="tig-postnl-address-container">
+                                        <span class="tig-postnl-pickup-street"><?= $escaper->escapeHtml($location->getStreet()) ?></span>
+                                        <span class="tig-postnl-pickup-number"><?= $escaper->escapeHtml($location->getHouseNumber()) ?></span>
+                                        <span class="tig-postnl-pickup-number-addition"><?= $escaper->escapeHtml($location->getHouseNumberExt()) ?></span>
+                                        <span class="tig-postnl-pickup-city"><?= $escaper->escapeHtml($location->getCity()) ?></span>
+
+                                        <!-- OPENING HOURS -->
+                                        <a class="tig-postnl-pickup-hours-link">
+                                            <span class="show" onclick="showHours('location-dates-<?= $escaper->escapeJs($location->getValue())?>');">
+                                                <?= $escaper->escapeHtml('Show opening hours'); ?>
+                                            </span>
+                                            <span class="hide" onclick="hideHours('location-dates-<?= $escaper->escapeJs($location->getValue())?>');">
+                                                <?= $escaper->escapeHtml('Hide opening hours'); ?>
+                                            </span>
+                                        </a>
+                                    </div>
+
+                                    <!-- DATE & TIME -->
+                                    <span class="tig-postnl-date-time-container">
+                                        <span class="tig-postnl-pickup-deliver"><?= $escaper->escapeHtml(__('From 15:00')) ?></span>
+                                        <span class="pickup-date">
+                                            <span class="pickup-date-date"><?= $escaper->escapeHtml($magewire->getPickupDate()) ?></span>
+                                        </span>
+                                    </span>
+
+                                    <!-- OPENING HOURS -->
+                                    <div class="tig-postnl-pickup-hours-list" id="location-dates-<?= $escaper->escapeHtmlAttr($location->getValue()) ?>">
+                                        <ul>
+                                        <?php foreach ($location->getHours() as $openTime): ?>
+                                            <li class="pickup-list-day"><?= $escaper->escapeHtml($openTime['day']) ?></li>
+                                            <?php foreach ($openTime['hours'] as $hours): ?>
+                                                <li class="pickup-list-time"><?= $escaper->escapeHtml($hours) ?></li>
+                                            <?php endforeach; ?>
+                                        <?php endforeach; ?>
+                                        </ul>
+                                    </div>
                                 </label>
-                            </li>
-                            <?php endforeach; ?>
-                        </ul>
+                            </div>
+
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
