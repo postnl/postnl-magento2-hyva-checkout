@@ -10,7 +10,6 @@ use PostNL\HyvaCheckout\ViewModel\ShippingView;
 /** @var CheckoutView $checkoutView */
 
 /** @var \Hyva\PostNL\ViewModel\Location $locationViewModel */
-//$locationViewModel = $viewModels->require(\Hyva\PostNL\ViewModel\Location::class);
 $checkoutView = $viewModels->require(CheckoutView::class);
 
 /** @var ShippingView $shippingViewModel */
@@ -18,7 +17,7 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
 
 ?>
 <div>
-    <?php if ($magewire->isOpen() && $shippingViewModel->getDeliveryPrice()): ?>
+    <?php if ($magewire->isOpen() && $shippingViewModel->getDeliveryPrice() !== null): ?>
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <div class="sm:flex sm:items-start">
                 <div class="w-full">
@@ -56,5 +55,26 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
                 </div>
             </div>
         </div>
+        <?php if ($magewire->canUseStatedAddressOnly()): ?>
+        <div class="extra-service-container">
+            <div class="extra-service-header">
+                <span class="extra-service-label"><?= $escaper->escapeHtml('Extra service') ?></span>
+            </div>
+
+            <div class="only-stated-address">
+                <input type="checkbox"
+                       name="postnl_stated_address_only_checkbox"
+                       id="postnl_stated_address_only_checkbox"
+                       value="1"
+                       class="checkbox"
+                       wire:model="statedOnly">
+                <label for="postnl_stated_address_only_checkbox"
+                       ><?= $escaper->escapeHtml('Do not deliver to neighbours'); ?></label>
+                <?php if ($statedFee = $magewire->statedAddressOnlyFee()): ?>
+                    <span class="price"><?= /** @noEscape */$statedFee ?></span>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endif; ?>
     <?php endif; ?>
 </div>

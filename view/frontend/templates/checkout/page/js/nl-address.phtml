@@ -57,7 +57,6 @@ $checkoutView = $viewModels->require(CheckoutView::class);
                                 housenumber: houseNumber
                             }));
                             const response = await apiResponse.json();
-                            debugger;
 
                             if (response.status !== undefined) {
                                 let message = '<?= $escaper->escapeJs(__('Unexpected error occurred. Please fill in the address details manually.')) ?>';

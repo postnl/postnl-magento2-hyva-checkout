@@ -9,7 +9,7 @@ use PostNL\HyvaCheckout\ViewModel\ShippingView;
 /** @var ShippingView $shippingViewModel */
 
 $shippingViewModel = $viewModels->require(ShippingView::class);
-$price = $shippingViewModel->getDeliveryPrice();
+$price = $magewire->getDeliveryPrice();
 $pickupPrice = $shippingViewModel->getPickupPrice();
 ?>
 <div>
@@ -44,7 +44,7 @@ $pickupPrice = $shippingViewModel->getPickupPrice();
                            class="postnl-type-selection <?= $magewire->isPickup() ? '' : '' ?>">
                         <div class="flex flex-col gap-2">
                             <span <?= $magewire->isPickup() ? 'class="font-bold"' : ''?>><?= $escaper->escapeHtml(__('Pickup')) ?></span>
-                            <?php if ($pickupPrice): ?>
+                            <?php if ($pickupPrice !== null): ?>
                                 <span class="price"><?= $escaper->escapeHtml($magewire->getPickupPrice()) ?></span>
                             <?php endif; ?>
                         </div>

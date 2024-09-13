@@ -8,7 +8,7 @@ use Magewirephp\Magewire\Component;
 use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
 use PostNL\HyvaCheckout\Model\QuoteOrderRepository;
 use PostNL\HyvaCheckout\Model\Shipping\Pickup\Location;
-use PostNL\HyvaCheckout\ViewModel\ShippingView;
+use TIG\PostNL\Config\Provider\ShippingOptions;
 use TIG\PostNL\Service\Action\OrderSave;
 use TIG\PostNL\Service\Shipping\LetterboxPackage;
 use TIG\PostNL\Service\Shipping\PickupLocations;
@@ -34,25 +34,24 @@ class SelectPickup extends Component
     private CheckoutSession $checkoutSession;
     private QuoteOrderRepository $postnlOrderRepository;
     private OrderSave $orderSave;
-    private \Magento\Framework\Pricing\Helper\Data $priceHelper;
     private LetterboxPackage $letterboxPackage;
     private PickupLocations $pickupLocations;
+    private ShippingOptions $shippingOptions;
 
     public function __construct(
         CheckoutSession $checkoutSession,
         QuoteOrderRepository $postnlOrderRepository,
         OrderSave $orderSave,
-        \Magento\Framework\Pricing\Helper\Data $priceHelper,
         LetterboxPackage $letterboxPackage,
         PickupLocations $pickupLocations,
-        ShippingView $shippingView
+        ShippingOptions $shippingOptions
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->postnlOrderRepository = $postnlOrderRepository;
         $this->orderSave = $orderSave;
-        $this->priceHelper = $priceHelper;
         $this->letterboxPackage = $letterboxPackage;
         $this->pickupLocations = $pickupLocations;
+        $this->shippingOptions = $shippingOptions;
     }
 
     public function boot(): void
@@ -137,13 +136,16 @@ class SelectPickup extends Component
             // Check if postnl order exists and selected
             $postnlOrder = $this->postnlOrderRepository->getByQuoteId($quote->getId());
             if ($postnlOrder->getEntityId()) {
-                if ($postnlOrder->getType() === 'PG') {
+                if ($postnlOrder->getIsPakjegemak()) {
                     $this->pickupSelected = true;
                 }
             } else {
-                // Default display
-                // @todo sometimes pickup can be default
-                $this->pickupSelected = false;
+                // Default display - check if pickup should be selected first
+                $countryId = $shipping->getAddress()->getCountryId();
+                if (($countryId === 'NL' || $countryId === 'BE') && $this->shippingOptions->isPakjegemakDefault($countryId)) {
+                    // Pickup is default - do not update anything
+                    $this->pickupSelected = true;
+                }
             }
         }
         return true;
@@ -231,7 +233,11 @@ class SelectPickup extends Component
     private function checkOptionSelected(\Magento\Quote\Api\Data\CartInterface $quote)
     {
         $postnlOrder = $this->postnlOrderRepository->getByQuoteId($quote->getId());
-        if (!$this->locationId && $postnlOrder->getEntityId() && $postnlOrder->getType()) {
+        if (!$this->locationId
+            && $postnlOrder->getEntityId()
+            && $postnlOrder->getIsPakjegemak()
+            && $postnlOrder->getPgLocationCode()
+        ) {
             $this->locationId = $postnlOrder->getPgLocationCode();
             $this->editMode = '0';
         }

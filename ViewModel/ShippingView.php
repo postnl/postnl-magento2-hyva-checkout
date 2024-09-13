@@ -10,7 +10,7 @@ use TIG\PostNL\Service\Carrier\QuoteToRateRequest;
 
 class ShippingView implements ArgumentInterface
 {
-    private $cache = [];
+    private array $cache = [];
     private CheckoutSession $checkoutSession;
     private Calculator $calculator;
     private QuoteToRateRequest $quoteToRateRequest;
@@ -33,7 +33,10 @@ class ShippingView implements ArgumentInterface
         $shipping = $this->checkoutSession->getQuote()->getShippingAddress();
         $key = $shipping->getCountryId() . '_' . $shipping->getPostcode() . $parcel;
         if (!array_key_exists($key, $this->cache)) {
-            $request = $this->quoteToRateRequest->getByUpdatedAddress($shipping->getCountryId(), $shipping->getPostcode());
+            $request = $this->quoteToRateRequest->getByUpdatedAddress(
+                $shipping->getCountryId(),
+                $shipping->getPostcode()
+            );
             $value = $this->calculator->getPriceWithTax($request, $parcel);
             // Format return types
             if (!is_array($value)) {
@@ -46,7 +49,7 @@ class ShippingView implements ArgumentInterface
 
     public function formatPrice(?float $price): string
     {
-        if (!$price) {
+        if ($price === null) {
             return '';
         }
         return $this->formatter->currency($price);
@@ -55,13 +58,14 @@ class ShippingView implements ArgumentInterface
     public function getDeliveryPrice(): ?string
     {
         $price = $this->getPriceFromAddressRequest();
-        return $price['price'] ?? null;
+        // With freeShipping price can be 0.0 here, so we need to make sure that array is correct
+        return array_key_exists('price', $price) ? (string)$price['price'] : null;
     }
 
     public function getPickupPrice(): ?string
     {
         $price = $this->getPriceFromAddressRequest(PickupAddress::PG_ADDRESS_TYPE);
-        return $price['price'] ?? null;
+        return array_key_exists('price', $price) ? (string)$price['price'] : null;
     }
 
 }

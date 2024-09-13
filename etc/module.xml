@@ -4,6 +4,7 @@
     <module name="PostNL_HyvaCheckout">
         <sequence>
             <module name="Hyva_Checkout" />
+            <module name="TIG_PostNL" />
         </sequence>
     </module>
 </config>

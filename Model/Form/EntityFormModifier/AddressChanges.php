@@ -37,12 +37,11 @@ class AddressChanges extends AbstractEntityFormModifier
     {
         $countryField = $form->getField(\Magento\Customer\Api\Data\AddressInterface::COUNTRY_ID);
 
-        if ($countryField?->getValue() === 'NL') {
+        if ($countryField && $countryField->getValue() === 'NL') {
             $form->getField(CheckoutFieldsApi::POSTNL_ADDRESS)->show();
 
-            $form->getField(AddressInterface::POSTCODE)->setAttribute('disabled');
-            $form->getField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER)?->enable();
-            $form->getField(CheckoutFieldsApi::POSTNL_POSTCODE)?->enable();
+            $form->getField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER)->enable();
+            $form->getField(CheckoutFieldsApi::POSTNL_POSTCODE)->enable();
 
             $street = $form->getField(AddressInterface::STREET);
             $street->setAttribute('disabled');
@@ -51,8 +50,8 @@ class AddressChanges extends AbstractEntityFormModifier
                 $relative->setAttribute('disabled');
             }
 
-            $form->getField(AddressInterface::CITY)?->setAttribute('disabled');
-            $form->getField(AddressInterface::POSTCODE)?->setAttribute('disabled');
+            //$form->getField(AddressInterface::CITY)->setAttribute('disabled');
+            //$form->getField(AddressInterface::POSTCODE)->setAttribute('disabled');
         } else {
             $form->getField(CheckoutFieldsApi::POSTNL_ADDRESS)->hide();
         }
@@ -80,9 +79,9 @@ class AddressChanges extends AbstractEntityFormModifier
             $this->updateFormField($form, CheckoutFieldsApi::POSTNL_HOUSE_NUMBER, $address, 'houseNumber');
             $this->updateFormField($form, CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION, $address, 'houseNumberAddition');
         } else {
-            $postcode = $form->getField('postcode')?->getValue();
-            if ($postcode) {
-                $form->getField(CheckoutFieldsApi::POSTNL_POSTCODE)?->setValue($postcode);
+            $postcode = $form->getField('postcode');
+            if ($postcode && $postcode->getValue()) {
+                $form->getField(CheckoutFieldsApi::POSTNL_POSTCODE)->setValue($postcode->getValue());
             }
         }
     }

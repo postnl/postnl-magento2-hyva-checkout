@@ -4,10 +4,12 @@ namespace PostNL\HyvaCheckout\Magewire;
 
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Pricing\Helper\Data;
 use Magewirephp\Magewire\Component;
 use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
 use PostNL\HyvaCheckout\Model\QuoteOrderRepository;
 use PostNL\HyvaCheckout\Model\Shipping\Delivery;
+use TIG\PostNL\Config\Provider\ShippingOptions;
 use TIG\PostNL\Service\Action\OrderSave;
 use TIG\PostNL\Service\Order\FeeCalculator;
 use TIG\PostNL\Service\Timeframe\Resolver;
@@ -17,6 +19,7 @@ class SelectTimeframe extends Component
     public bool $deliverySelected = false;
 
     public string $deliveryTimeframe = '';
+    public $statedOnly = '';
 
     protected $listeners = [
         'postnl_select_delivery_type' => 'init'
@@ -31,7 +34,8 @@ class SelectTimeframe extends Component
     private FeeCalculator $feeCalculator;
     private QuoteOrderRepository $postnlOrderRepository;
     private OrderSave $orderSave;
-    private \Magento\Framework\Pricing\Helper\Data $priceHelper;
+    private Data $priceHelper;
+    private ShippingOptions $shippingOptions;
 
     public function __construct(
         CheckoutSession $checkoutSession,
@@ -39,7 +43,8 @@ class SelectTimeframe extends Component
         FeeCalculator $feeCalculator,
         QuoteOrderRepository $postnlOrderRepository,
         OrderSave $orderSave,
-        \Magento\Framework\Pricing\Helper\Data $priceHelper
+        Data $priceHelper,
+        ShippingOptions $shippingOptions
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->timeframeResolver = $timeframeResolver;
@@ -47,6 +52,7 @@ class SelectTimeframe extends Component
         $this->postnlOrderRepository = $postnlOrderRepository;
         $this->orderSave = $orderSave;
         $this->priceHelper = $priceHelper;
+        $this->shippingOptions = $shippingOptions;
     }
 
     public function boot(): void
@@ -110,23 +116,42 @@ class SelectTimeframe extends Component
             // Check if postnl order exists and selected
             $postnlOrder = $this->postnlOrderRepository->getByQuoteId($quote->getId());
             if ($postnlOrder->getEntityId()) {
-                if ($postnlOrder->getType() !== 'PG') {
+                if (!$postnlOrder->getIsPakjegemak()) {
                     $this->deliverySelected = true;
                 }
             } else {
-                // Default display
-                // @todo sometimes pickup can be default
-                $this->deliverySelected = true;
+                // Default display - check if pickup should be selected first
+                $countryId = $shipping->getAddress()->getCountryId();
+                if (($countryId === 'NL' || $countryId === 'BE') && $this->shippingOptions->isPakjegemakDefault($countryId)) {
+                    // Pickup is default - do not update anything
+                } else {
+                    $this->deliverySelected = true;
+                }
             }
         }
         return true;
     }
 
+    public function updatedStatedOnly($value)
+    {
+        $this->updatedDeliveryTimeframe($this->deliveryTimeframe);
+        return $value;
+    }
+
     public function updatedDeliveryTimeframe($value)
+    {
+        if ($this->saveDeliveryTimeframe($value)) {
+            $this->emit('shipping_method_selected');
+        }
+        return $value;
+        // Trigger updates on related blocks
+    }
+
+    public function saveDeliveryTimeframe($value): bool
     {
         $quote = $this->checkoutSession->getQuote();
         if (!$this->checkShippingSelected($quote)) {
-            return $value;
+            return false;
         }
 
         $shippingPoint = explode('_', $value);
@@ -144,7 +169,8 @@ class SelectTimeframe extends Component
                 'street' => $shipping->getStreet(),
                 'postcode' => $shipping->getPostcode(),
                 'housenumber' => $street[1] ?? '',
-            ]
+            ],
+            'stated_address_only' => (int)$this->statedOnly
         ];
 
         if (isset($shippingPoint[3])) {
@@ -156,7 +182,6 @@ class SelectTimeframe extends Component
             $request['date'] = $this->checkoutSession->getPostNLDeliveryDate();
         }
         $postnlOrder = $this->postnlOrderRepository->getByQuoteId($quote->getId());
-        $originalFee = (float)$postnlOrder->getFee();
         try {
             $this->orderSave->saveDeliveryOption($postnlOrder, $request);
         } catch (LocalizedException $e) {
@@ -164,10 +189,8 @@ class SelectTimeframe extends Component
         } catch (\Exception $e) {
             throw new LocalizedException(__('Failed to save postnl order information.'));
         }
-        // Trigger updates on related blocks
-        $this->emit('shipping_method_selected');
 
-        return $value;
+        return true;
     }
 
 
@@ -212,22 +235,52 @@ class SelectTimeframe extends Component
         return $result;
     }
 
-    private function checkOptionSelected(\Magento\Quote\Api\Data\CartInterface $quote)
+    private function checkOptionSelected(\Magento\Quote\Api\Data\CartInterface $quote): void
     {
         $postnlOrder = $this->postnlOrderRepository->getByQuoteId($quote->getId());
-        if (!$this->deliveryTimeframe && $postnlOrder->getEntityId() && $postnlOrder->getType()) {
-            $key[] = $postnlOrder->getType();
-            if ($postnlOrder->getDeliveryDate()) {
-                // CHange format from database Y-m-d to d-m-Y that is response from PostNL
-                $date = new \DateTime($postnlOrder->getDeliveryDate());
-                array_push($key,
-                    $date->format('d-m-Y'),
-                    $postnlOrder->getExpectedDeliveryTimeStart(),
-                    $postnlOrder->getExpectedDeliveryTimeEnd()
-                );
+        if ($postnlOrder->getEntityId() && $postnlOrder->getType()) {
+            if (!$this->deliveryTimeframe && !$postnlOrder->getIsPakjegemak()) {
+                $key[] = $postnlOrder->getType();
+                if ($postnlOrder->getDeliveryDate()) {
+                    // Change format from database Y-m-d to d-m-Y that is response from PostNL
+                    $date = new \DateTime($postnlOrder->getDeliveryDate());
+                    array_push($key,
+                        $date->format('d-m-Y'),
+                        $postnlOrder->getExpectedDeliveryTimeStart(),
+                        $postnlOrder->getExpectedDeliveryTimeEnd()
+                    );
+                }
+                $this->deliveryTimeframe = implode('_', $key);
             }
-            $this->deliveryTimeframe = implode('_', $key);
+            if ($postnlOrder->getIsStatedAddressOnly() > 0) {
+                $this->statedOnly = 1;
+            }
+        } else {
+            // Select first delivery
+            $timeframes = $this->getTimeframes();
+            if (isset($timeframes[0])) {
+                $this->deliveryTimeframe = $timeframes[0]->getOptions()[0]->getValue();
+                $this->saveDeliveryTimeframe($this->deliveryTimeframe);
+            }
         }
+    }
+
+    public function canUseStatedAddressOnly(): bool
+    {
+        $isActive = $this->shippingOptions->isStatedAddressOnlyActive();
+        $isInternationalPacketsActive = $this->shippingOptions->canUsePriority();
+
+        $address = $this->checkoutSession->getQuote()->getShippingAddress();
+        $countryId = $address ? $address->getCountryId() : '';
+        $isNL = $countryId === 'NL' || ($countryId === 'BE' && $isInternationalPacketsActive === false);
+
+        return $isActive && $isNL;
+    }
+
+    public function statedAddressOnlyFee(): ?string
+    {
+        $fee = $this->shippingOptions->getStatedAddressOnlyFee();
+        return $fee > 0 ? $this->priceHelper->currency($fee) : null;
     }
 
 }
