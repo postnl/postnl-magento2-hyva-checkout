@@ -56,25 +56,25 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
             </div>
         </div>
         <?php if ($magewire->canUseStatedAddressOnly()): ?>
-        <div class="extra-service-container">
-            <div class="extra-service-header">
-                <span class="extra-service-label"><?= $escaper->escapeHtml('Extra service') ?></span>
-            </div>
+            <div class="extra-service-container">
+                <div class="extra-service-header">
+                    <span class="extra-service-label"><?= $escaper->escapeHtml('Extra service') ?></span>
+                </div>
 
-            <div class="only-stated-address">
-                <input type="checkbox"
-                       name="postnl_stated_address_only_checkbox"
-                       id="postnl_stated_address_only_checkbox"
-                       value="1"
-                       class="checkbox"
-                       wire:model="statedOnly">
-                <label for="postnl_stated_address_only_checkbox"
-                       ><?= $escaper->escapeHtml('Do not deliver to neighbours'); ?></label>
-                <?php if ($statedFee = $magewire->statedAddressOnlyFee()): ?>
-                    <span class="price"><?= /** @noEscape */$statedFee ?></span>
-                <?php endif; ?>
+                <div class="only-stated-address">
+                    <input type="checkbox"
+                           name="postnl_stated_address_only_checkbox"
+                           id="postnl_stated_address_only_checkbox"
+                           value="1"
+                           class="checkbox"
+                           wire:model="statedOnly">
+                    <label for="postnl_stated_address_only_checkbox"
+                    ><?= $escaper->escapeHtml('Do not deliver to neighbours'); ?></label>
+                    <?php if ($statedFee = $magewire->statedAddressOnlyFee()): ?>
+                        <span class="price"><?= /** @noEscape */$statedFee ?></span>
+                    <?php endif; ?>
+                </div>
             </div>
-        </div>
         <?php endif; ?>
     <?php endif; ?>
 </div>

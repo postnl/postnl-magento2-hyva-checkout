@@ -1,5 +1,5 @@
 module.exports = {
-    content: ['../templates/**/*.phtml'],
+    content: ['../**/*.phtml'],
     theme: {
         extend: {
             colors: {
