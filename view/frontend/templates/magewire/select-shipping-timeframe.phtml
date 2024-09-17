@@ -74,7 +74,7 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
                     <div class="extra-service-info w-full flex justify-between text-postnl-gray-darker ml-3">
                         <label for="postnl_stated_address_only_checkbox"><?= $escaper->escapeHtml(__('Do not deliver to neighbours')); ?></label>
                         <?php if ($statedFee = $magewire->statedAddressOnlyFee()): ?>
-                            <span class="price"><?= /** @noEscape */$statedFee ?></span>
+                            <span class="price">+ <?= /** @noEscape */$statedFee ?></span>
                         <?php endif; ?>
                     </div>
                 </div>

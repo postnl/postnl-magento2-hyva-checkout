@@ -33,7 +33,7 @@ class Timeframe
 
     public function getRightLabel(): string
     {
-        $label = strtolower($this->rightLabel);
+        $label = strtolower((string)$this->rightLabel);
         switch ($label) {
             case 'daytime':
                 return __('Daytime');

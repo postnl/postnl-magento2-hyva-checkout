@@ -22,7 +22,8 @@ class SelectTimeframe extends Component
     public $statedOnly = '';
 
     protected $listeners = [
-        'postnl_select_delivery_type' => 'init'
+        'postnl_select_delivery_type' => 'init',
+        'postnl_pickup_selected' => 'resetStoredData'
     ];
 
     protected $loader = [
@@ -59,7 +60,9 @@ class SelectTimeframe extends Component
     {
         $quote = $this->checkoutSession->getQuote();
         $this->checkShippingSelected($quote);
-        $this->checkOptionSelected($quote);
+        if ($this->deliverySelected) {
+            $this->checkOptionSelected($quote);
+        }
     }
 
     public function init($data)
@@ -76,6 +79,12 @@ class SelectTimeframe extends Component
         }
 
         $this->deliverySelected = true;
+    }
+
+    public function resetStoredData(): void
+    {
+        $this->deliverySelected = false;
+        $this->deliveryTimeframe = '';
     }
 
     public function isOpen(): bool
@@ -142,6 +151,7 @@ class SelectTimeframe extends Component
     {
         if ($this->saveDeliveryTimeframe($value)) {
             $this->emit('shipping_method_selected');
+            $this->emit('postnl_delivery_selected');
         }
         return $value;
         // Trigger updates on related blocks
@@ -150,7 +160,7 @@ class SelectTimeframe extends Component
     public function saveDeliveryTimeframe($value): bool
     {
         $quote = $this->checkoutSession->getQuote();
-        if (!$this->checkShippingSelected($quote)) {
+        if (!$value || !$this->checkShippingSelected($quote)) {
             return false;
         }
 
@@ -161,7 +171,6 @@ class SelectTimeframe extends Component
         $street = $shipping->getStreet();
         $request = [
             'type' => CheckoutFieldsApi::DELIVERY_TYPE_DELIVERY,
-            'option' => $shippingPoint[0],
             'country' => $shipping->getCountryId(),
             'quote_id' => $quote->getId(),
             'address' => [
@@ -174,11 +183,15 @@ class SelectTimeframe extends Component
         ];
 
         if (isset($shippingPoint[3])) {
+            $request['option'] = $shippingPoint[0];
             $request['date'] = $shippingPoint[1];
             $request['from'] = $shippingPoint[2];
             $request['to'] = $shippingPoint[3];
+        } else {
+            // Replace type with the value from input
+            $request['type'] = $shippingPoint[0];
         }
-        if (!$request['date']) {
+        if (!isset($request['date'])) {
             $request['date'] = $this->checkoutSession->getPostNLDeliveryDate();
         }
         $postnlOrder = $this->postnlOrderRepository->getByQuoteId($quote->getId());
@@ -241,7 +254,7 @@ class SelectTimeframe extends Component
         if ($postnlOrder->getEntityId() && $postnlOrder->getType()) {
             if (!$this->deliveryTimeframe && !$postnlOrder->getIsPakjegemak()) {
                 $key[] = $postnlOrder->getType();
-                if ($postnlOrder->getDeliveryDate()) {
+                if ($postnlOrder->getExpectedDeliveryTimeStart()) {
                     // Change format from database Y-m-d to d-m-Y that is response from PostNL
                     $date = new \DateTime($postnlOrder->getDeliveryDate());
                     array_push($key,
@@ -249,6 +262,12 @@ class SelectTimeframe extends Component
                         $postnlOrder->getExpectedDeliveryTimeStart(),
                         $postnlOrder->getExpectedDeliveryTimeEnd()
                     );
+                } else {
+                    // Seems like if a non-day delivery option or a fallback one - get data from timeframes
+                    $timeframes = $this->getTimeframes();
+                    if (isset($timeframes[0]) && !$timeframes[0]->getDate()) {
+                        $key = [$timeframes[0]->getOptions()[0]->getValue()];
+                    }
                 }
                 $this->deliveryTimeframe = implode('_', $key);
             }
@@ -258,7 +277,8 @@ class SelectTimeframe extends Component
         } else {
             // Select first delivery
             $timeframes = $this->getTimeframes();
-            if (isset($timeframes[0])) {
+            // In case this is a delivery day, not a fall-back option of some sort
+            if (isset($timeframes[0]) && $timeframes[0]->getDate()) {
                 $this->deliveryTimeframe = $timeframes[0]->getOptions()[0]->getValue();
                 $this->saveDeliveryTimeframe($this->deliveryTimeframe);
             }

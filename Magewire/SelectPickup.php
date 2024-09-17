@@ -24,7 +24,8 @@ class SelectPickup extends Component
 
     protected $listeners = [
         'postnl_select_delivery_type' => 'init',
-        'postnl_pickup_selected' => 'refresh'
+        'postnl_pickup_selected' => 'refresh',
+        'postnl_delivery_selected' => 'resetStoredData'
     ];
 
     protected $loader = [
@@ -71,6 +72,12 @@ class SelectPickup extends Component
         $this->pickupSelected = $value === CheckoutFieldsApi::DELIVERY_TYPE_PICKUP;
     }
 
+    public function resetStoredData(): void
+    {
+        $this->pickupSelected = false;
+        $this->locationId = '';
+    }
+
     public function isOpen(): bool
     {
         return $this->pickupSelected;
@@ -95,11 +102,13 @@ class SelectPickup extends Component
     public function getLocations(): array
     {
         $shippingAddress = $this->checkoutSession->getQuote()->getShippingAddress();
+        $street = $shippingAddress->getStreet();
         $data = [
             'country' => $shippingAddress->getCountryId(),
             'street' => $shippingAddress->getStreet(),
             'postcode' => $shippingAddress->getPostcode(),
             'city' => $shippingAddress->getCity(),
+            'housenumber' => $street[1] ?? ''
         ];
         $locations = $this->pickupLocations->get($data);
         return $this->convertResponse($locations);

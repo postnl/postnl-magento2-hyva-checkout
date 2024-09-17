@@ -5,6 +5,7 @@ use Hyva\Checkout\ViewModel\Checkout\Formatter;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use TIG\PostNL\Helper\DeliveryOptions\PickupAddress;
+use TIG\PostNL\Service\Carrier\ParcelTypeFinder;
 use TIG\PostNL\Service\Carrier\Price\Calculator;
 use TIG\PostNL\Service\Carrier\QuoteToRateRequest;
 
@@ -57,7 +58,7 @@ class ShippingView implements ArgumentInterface
 
     public function getDeliveryPrice(): ?string
     {
-        $price = $this->getPriceFromAddressRequest();
+        $price = $this->getPriceFromAddressRequest(ParcelTypeFinder::DEFAULT_TYPE);
         // With freeShipping price can be 0.0 here, so we need to make sure that array is correct
         return array_key_exists('price', $price) ? (string)$price['price'] : null;
     }

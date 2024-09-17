@@ -17,11 +17,4 @@
                 type="PostNL\HyvaCheckout\Plugin\HyvaCheckout\ViewModel\MethodListPlugin"
                 sortOrder="100" />
     </type>
-
-    <!--    <type name="Hyva\Checkout\Model\Form\EntityForm\EavAttributeBillingAddressForm">-->
-    <!--        <arguments>-->
-    <!--            <argument name="entityFormModifiers" xsi:type="array">-->
-    <!--            </argument>-->
-    <!--        </arguments>-->
-    <!--    </type>-->
 </config>
