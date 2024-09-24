@@ -24,7 +24,7 @@ $pickupPrice = $shippingViewModel->getPickupPrice();
                        required>
                 <label for="<?= CheckoutFieldsApi::DELIVERY_TYPE_DELIVERY ?>"
                        class="postnl-type-selection <?= $magewire->isDelivery() ? '!text-grey !border-postnl-orange ' : '' ?>">
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-row justify-between gap-2 w-full">
                         <span <?= $magewire->isDelivery() ? 'class="font-bold"' : ''?>><?= $escaper->escapeHtml(__('Delivery')) ?></span>
                         <?php if ($price): ?>
                         <span class="price"><?= $escaper->escapeHtml($magewire->getDeliveryPrice()) ?></span>
@@ -42,7 +42,7 @@ $pickupPrice = $shippingViewModel->getPickupPrice();
                            class="hidden peer">
                     <label for="<?= CheckoutFieldsApi::DELIVERY_TYPE_PICKUP ?>"
                            class="postnl-type-selection <?= $magewire->isPickup() ? '!text-grey !border-postnl-orange ' : '' ?>">
-                        <div class="flex flex-col gap-2">
+                        <div class="flex flex-row justify-between gap-2 w-full">
                             <span <?= $magewire->isPickup() ? 'class="font-bold"' : ''?>><?= $escaper->escapeHtml(__('Pickup')) ?></span>
                             <?php if ($pickupPrice !== null): ?>
                                 <span class="price"><?= $escaper->escapeHtml($magewire->getPickupPrice()) ?></span>
