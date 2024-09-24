@@ -15,6 +15,7 @@ use TIG\PostNL\Service\Shipping\PickupLocations;
 
 class SelectPickup extends Component
 {
+    private const LOCATIONS_LIMIT = 5;
     public bool $pickupSelected = false;
     public string $editMode = '1';
 
@@ -232,9 +233,14 @@ class SelectPickup extends Component
     private function convertResponse(array $locations): array
     {
         $result = [];
+        $count = 0;
         foreach ($locations as $location) {
             $location = new Location($location);
             $result[$location->getValue()] = $location;
+            $count ++;
+            if ($count === self::LOCATIONS_LIMIT) {
+                break;
+            }
         }
         return $result;
     }

@@ -110,7 +110,7 @@ class AddressChanges extends AbstractEntityFormModifier
         // Create two data carrier fields and hide them, so we can render both manually.
         $postcode = $form->createField(CheckoutFieldsApi::POSTNL_POSTCODE, 'text', [
             'data' => [
-                'label' => __('Zip/Postal Code')->__toString(),
+                'label' => __('Zipcode')->__toString(),
                 'is_auto_save' => false,
                 'auto_complete' => 'off',
                 'is_required' => true,
@@ -125,7 +125,7 @@ class AddressChanges extends AbstractEntityFormModifier
 
         $houseNumber = $form->createField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER, 'text', [
             'data' => [
-                'label' => __('House Number')->__toString(),
+                'label' => __('House number')->__toString(),
                 'is_auto_save' => false,
                 'auto_complete' => 'off',
                 'is_required' => true
@@ -139,7 +139,7 @@ class AddressChanges extends AbstractEntityFormModifier
 
         $houseNumberAddition = $form->createField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION, 'text', [
             'data' => [
-                'label' => __('House Number Addition')->__toString(),
+                'label' => __('House number addition')->__toString(),
                 'is_auto_save' => false,
                 'auto_complete' => 'off',
                 'is_required' => false

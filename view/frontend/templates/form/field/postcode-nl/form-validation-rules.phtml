@@ -24,7 +24,7 @@ use Magento\Framework\Escaper;
                 if (!value || isValidPostcode) {
                     return true;
                 } else {
-                    return '<?= $escaper->escapeJs(__('Please enter a valid zip/postal code.')); ?>';
+                    return '<?= $escaper->escapeJs(__('Please enter a valid zipcode.')); ?>';
                 }
             });
 
