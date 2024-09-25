@@ -68,8 +68,14 @@ class AddressChanges extends AbstractEntityFormModifier
                 $form->getField(AddressInterface::CITY)->setAttribute('disabled');
             }
         } else {
+            // Restore visibility and hide NL block
             $form->getField(CheckoutFieldsApi::POSTNL_ADDRESS)->hide();
             $form->getField(AddressInterface::POSTCODE)->show();
+
+            $street = $form->getField(AddressInterface::STREET);
+            foreach ($street->getRelatives() as $relative) {
+                $relative->setData(EntityFormElementInterface::VISIBLE, true);
+            }
         }
     }
 
