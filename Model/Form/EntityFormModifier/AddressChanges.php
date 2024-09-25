@@ -5,6 +5,7 @@ namespace PostNL\HyvaCheckout\Model\Form\EntityFormModifier;
 use Hyva\Checkout\Model\Form\AbstractEntityForm;
 use Hyva\Checkout\Model\Form\AbstractEntityFormModifier;
 use Hyva\Checkout\Model\Form\EntityField\EavEntityAddress\StreetAttributeField;
+use Hyva\Checkout\Model\Form\EntityFormElementInterface;
 use Magento\Customer\Api\Data\AddressInterface;
 use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
 
@@ -38,22 +39,37 @@ class AddressChanges extends AbstractEntityFormModifier
         $countryField = $form->getField(\Magento\Customer\Api\Data\AddressInterface::COUNTRY_ID);
 
         if ($countryField && $countryField->getValue() === 'NL') {
+            $this->sortFields($form);
             $form->getField(CheckoutFieldsApi::POSTNL_ADDRESS)->show();
 
             $form->getField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER)->enable();
             $form->getField(CheckoutFieldsApi::POSTNL_POSTCODE)->enable();
 
-            $street = $form->getField(AddressInterface::STREET);
-            $street->setAttribute('disabled');
+            $postcode = $form->getField(CheckoutFieldsApi::POSTNL_POSTCODE)->getValue();
+            $housenumber = $form->getField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER)->getValue();
 
+            // Hide original postcode
+            $form->getField(AddressInterface::POSTCODE)->hide();
+
+            $street = $form->getField(AddressInterface::STREET);
             foreach ($street->getRelatives() as $relative) {
-                $relative->setAttribute('disabled');
+                $relative->setData(EntityFormElementInterface::VISIBLE, false);
             }
 
-            //$form->getField(AddressInterface::CITY)->setAttribute('disabled');
-            //$form->getField(AddressInterface::POSTCODE)->setAttribute('disabled');
+            // Disable only if values are filled out in our fields
+            if ($postcode && $housenumber) {
+                // Make original fields non-editable
+                $street->setAttribute('disabled');
+
+                foreach ($street->getRelatives() as $relative) {
+                    $relative->setAttribute('disabled');
+                    $relative->setData(EntityFormElementInterface::VISIBLE, false);
+                }
+                $form->getField(AddressInterface::CITY)->setAttribute('disabled');
+            }
         } else {
             $form->getField(CheckoutFieldsApi::POSTNL_ADDRESS)->hide();
+            $form->getField(AddressInterface::POSTCODE)->show();
         }
     }
 
@@ -79,7 +95,7 @@ class AddressChanges extends AbstractEntityFormModifier
             $this->updateFormField($form, CheckoutFieldsApi::POSTNL_HOUSE_NUMBER, $address, 'houseNumber');
             $this->updateFormField($form, CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION, $address, 'houseNumberAddition');
         } else {
-            $postcode = $form->getField('postcode');
+            $postcode = $form->getField(AddressInterface::POSTCODE);
             if ($postcode && $postcode->getValue()) {
                 $form->getField(CheckoutFieldsApi::POSTNL_POSTCODE)->setValue($postcode->getValue());
             }
@@ -98,12 +114,12 @@ class AddressChanges extends AbstractEntityFormModifier
     {
         // Prevent the regular address fields to show, without removing them, so they can hold an address value.
         $streetField = $form->getfield(\Magento\Customer\Api\Data\AddressInterface::STREET);
-        $postcodeField = $form->getfield('postcode');
+        $postcodeField = $form->getfield(AddressInterface::POSTCODE);
 
         // Wrapper field who's responsible for postcode and house number.
         $address = $form->createField(CheckoutFieldsApi::POSTNL_ADDRESS, 'html', [
             'data' => [
-                'position' => 11
+                EntityFormElementInterface::POSITION => 11
             ]
         ]);
 
@@ -164,5 +180,28 @@ class AddressChanges extends AbstractEntityFormModifier
         $form->addField($houseNumberAddition);
 
         return $form;
+    }
+
+    private function sortFields(AbstractEntityForm $form): void
+    {
+        $fields = $form->getFields();
+        $dependencies = [AddressInterface::STREET, AddressInterface::POSTCODE, AddressInterface::CITY];
+        $result = [];
+        $pushed = [];
+        $push = true;
+        foreach ($fields as $key => $formField) {
+            if ($push && in_array($key, $dependencies, true)) {
+                $pushed[$key] = $formField;
+                continue;
+            }
+            $result[$key] = $formField;
+            if ($key === CheckoutFieldsApi::POSTNL_ADDRESS) {
+                $push = false;
+                if (!empty($pushed)) {
+                    $result = array_merge($result, $pushed);
+                }
+            }
+        }
+        $form->setFields($result);
     }
 }
