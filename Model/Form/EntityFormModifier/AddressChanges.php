@@ -171,13 +171,17 @@ class AddressChanges extends AbstractEntityFormModifier
             ->setAttribute('x-model', 'address.'. CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION)
             ->hide();
 
+        // Check if we can load data from the relatives
         $streetRelatives = $streetField->getRelatives();
-
         if (isset($streetRelatives[1])) {
             $houseNumber->setValue($streetRelatives[1]->getValue());
+        } elseif ($streetField->getData(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER)) {
+            $houseNumber->setValue($streetField->getData(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER));
         }
         if (isset($streetRelatives[2])) {
             $houseNumberAddition->setValue($streetRelatives[2]->getValue());
+        } elseif ($streetField->getData(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION)) {
+            $houseNumberAddition->setValue($streetField->getData(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION));
         }
 
         $form->addField($address);
