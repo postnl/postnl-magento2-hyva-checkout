@@ -19,7 +19,9 @@ $addressRenderer = $viewModels->require(PickupAddressRenderer::class);
     <?= /* @noEscape */ $addressView->renderView() ?>
 
 </div>
-<h2><?= $escaper->escapeHtml(__('Pickup')); ?></h2>
+<h2 class="section-title border-b border-gray-400 pb-1 mb-3 text-xl font-medium">
+    <?= $escaper->escapeHtml(__('Pickup')); ?>
+</h2>
 <div>
     <address>
         <?= /* @noEscape */ $addressRenderer->renderPickupAddress() ?>
