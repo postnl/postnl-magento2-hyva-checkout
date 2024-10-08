@@ -24,7 +24,7 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
                     <?php if (!$magewire->isEditMode() && $location = $magewire->getSelectedLocation()): ?>
                         <div class="p-4">
                             <strong>
-                                <span><?= $escaper->escapeHtml('Pickup') ?>:</span>
+                                <span class="text-lg underline"><?= $escaper->escapeHtml('Pickup') ?>:</span>
                             </strong>
                             <div>
                                 <strong>
@@ -44,7 +44,7 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
                                        value="1"
                                        class="hidden peer"
                                        wire:model="editMode">
-                                <label class="cursor-pointer hover:underline" for="edit-location"><?= $escaper->escapeHtml(__('Change location')) ?></label>
+                                <label class="block cursor-pointer hover:underline text-lg text-postnl-orange-darker font-bold my-1" for="edit-location"><?= $escaper->escapeHtml(__('Change location')) ?></label>
                             </div>
                         </div>
                     <?php elseif ($magewire->isLetterboxPackage()): ?>
