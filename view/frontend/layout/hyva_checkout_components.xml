@@ -32,25 +32,8 @@
                         </argument>
                     </arguments>
                 </block>
-<!--                <block name="checkout.shipping.method.tig_postnl_regular.modal"-->
-<!--                       as="modal"-->
-<!--                       template="Hyva_PostNL::magewire/locations-modal.phtml">-->
-<!--                    <arguments>-->
-<!--                        <argument name="magewire" xsi:type="object">-->
-<!--                            Hyva\PostNL\Magewire\LocationsModal-->
-<!--                        </argument>-->
-<!--                    </arguments>-->
-<!--                </block>-->
-<!--                <block name="checkout.shipping.method.tig_postnl_regular.selected-pickup-point"-->
-<!--                       as="selected-pickup-point"-->
-<!--                          template="Hyva_PostNL::magewire//selected-pickup-point.phtml">-->
-<!--                    <arguments>-->
-<!--                        <argument name="magewire" xsi:type="object">-->
-<!--                            Hyva\PostNL\Magewire\SelectedPickupPoint-->
-<!--                        </argument>-->
-<!--                    </arguments>-->
-<!--                </block>-->
             </block>
         </referenceBlock>
+        <referenceBlock name="checkout.billing-details" class="PostNL\HyvaCheckout\Block\CheckoutBilling" />
     </body>
 </page>

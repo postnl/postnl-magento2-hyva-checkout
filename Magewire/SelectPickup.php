@@ -187,6 +187,8 @@ class SelectPickup extends Component
         $request = [
             'type' => CheckoutFieldsApi::DELIVERY_TYPE_PICKUP,
             'option' => 'PG', // Always
+            'from' => '15:00:00', // Also always
+            'name' => $pickupLocation->getName(),
             'LocationCode' => $value,
             'RetailNetworkID' => $pickupLocation->getNetworkId(),
             'country' => $shipping->getCountryId(),
