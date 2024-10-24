@@ -25,6 +25,7 @@ class SelectPickup extends Component
 
     protected $listeners = [
         'postnl_select_delivery_type' => 'init',
+        'shipping_address_saved' => 'refresh',
         'postnl_pickup_selected' => 'refresh',
         'postnl_delivery_selected' => 'resetStoredData'
     ];

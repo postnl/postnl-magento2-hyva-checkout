@@ -35,8 +35,8 @@ class ShippingView implements ArgumentInterface
         $key = $shipping->getCountryId() . '_' . $shipping->getPostcode() . $parcel;
         if (!array_key_exists($key, $this->cache)) {
             $request = $this->quoteToRateRequest->getByUpdatedAddress(
-                $shipping->getCountryId(),
-                $shipping->getPostcode()
+                (string)$shipping->getCountryId(),
+                (string)$shipping->getPostcode()
             );
             $value = $this->calculator->getPriceWithTax($request, $parcel);
             // Format return types
