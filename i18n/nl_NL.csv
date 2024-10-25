@@ -6,3 +6,4 @@
 "Failed to save postnl order information.","Het opslaan van de PostNL orderinformatie is mislukt."
 "Please enter a valid house number.","Voer een geldig huisnummer in."
 "Change location","Locatie wijzigen"
+"Sorry, we could not find your address with the zipcode and housenumber combination (%s). If you are sure that the zipcode and housenumber are correct, please fill in the address details manually.","Uw postode/huisnummer combinatie (%s) is niet gevonden. Mocht u er zeker van zijn dat uw gegevens correct zijn, vul dan s.v.p. uw gegevens handmatig in."
