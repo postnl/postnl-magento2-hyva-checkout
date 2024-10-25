@@ -168,7 +168,7 @@ class AddressChanges extends AbstractEntityFormModifier
             ]
         ])
             ->setAttribute('x-ref', CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION)
-            ->setAttribute('x-model', 'address.'. CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION)
+            //->setAttribute('x-model', 'address.'. CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION)
             ->hide();
 
         // Check if we can load data from the relatives

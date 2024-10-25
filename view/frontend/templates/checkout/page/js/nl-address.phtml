@@ -102,7 +102,6 @@ $checkoutView = $viewModels->require(CheckoutView::class);
             getOptions: function() {
                 return {
                     validationTimeout: 1500,
-                    messengerBlockEventPrefix: 'address:postnl-validation',
 
                     validators: {
                         validateValidAddressInput: (ref, value) => {
@@ -133,7 +132,7 @@ $checkoutView = $viewModels->require(CheckoutView::class);
 
             dispatchMessage: function(message, type = 'error') {
                 type = ['error', 'warning', 'success', 'info'].includes(type) ? type : 'info'
-                hyvaCheckout.message.dispatch(`${options.messengerBlockEventPrefix }:error`, message, type)
+                hyvaCheckout.message.dispatch(`address:postnl-validation:error`, message, type, {component: {id:'checkout.shipping-details.address-form'}})
             }
         }
     }
