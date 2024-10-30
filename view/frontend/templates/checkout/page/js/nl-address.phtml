@@ -64,7 +64,7 @@ $checkoutView = $viewModels->require(CheckoutView::class);
                                     message = response.error;
                                 }
                                 if (response.status === false) {
-                                    message = '<?= $escaper->escapeJs(__('Sorry, we could not find your address with the zipcode and housenumber combination (%s). If you are sure that the zipcode and housenumber are correct, please fill in the address details manually.')) ?>'
+                                    message = '<?= $escaper->escapeJs(__('Sorry, we could not find your address with the zipcode and housenumber combination (%s). Please check the entered postcode and house number and correct them where necessary.')) ?>'
                                         .replace('%s', postcode + ' / ' + houseNumber);
                                     response.status = 'warning';
                                 }

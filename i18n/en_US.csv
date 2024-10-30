@@ -6,4 +6,4 @@ Change location,Change location
 "Failed to save postnl order information.","Failed to save postnl order information."
 "Please enter a valid house number.","Please enter a valid house number."
 "Change location","Change location"
-"Sorry, we could not find your address with the zipcode and housenumber combination (%s). If you are sure that the zipcode and housenumber are correct, please fill in the address details manually.","Sorry, we could not find your address with the zipcode and housenumber combination (%s). If you are sure that the zipcode and housenumber are correct, please fill in the address details manually."
+"Sorry, we could not find your address with the zipcode and housenumber combination (%s). Please check the entered postcode and house number and correct them where necessary.","Sorry, we could not find your address with the zipcode and housenumber combination (%s). Please check the entered postcode and house number and correct them where necessary."
