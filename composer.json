@@ -6,7 +6,7 @@
     "require": {
         "magento/framework": "*",
         "hyva-themes/magento2-hyva-checkout": ">=1.1",
-        "tig/postnl-magento2": ">=1.17.0"
+        "tig/postnl-magento2": "*"
     },
     "license": [
         "Proprietary"
