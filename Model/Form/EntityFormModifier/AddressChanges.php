@@ -81,8 +81,12 @@ class AddressChanges extends AbstractEntityFormModifier
 
     public function validateUpdatedFields($form, $attributeField, $form2, $addressType)
     {
-        $address = (array)\json_decode((string)$form->getField(CheckoutFieldsApi::POSTNL_POSTCODE)->getValue());
-        if ($address) {
+        try {
+            $address = \json_decode((string)$form->getField(CheckoutFieldsApi::POSTNL_POSTCODE)->getValue(), true, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            $address = null;
+        }
+        if (is_array($address)) {
             $streetField = $form->getfield(AddressInterface::STREET);
             $streetField->setValue($address[AddressInterface::STREET] ?? '');
             $streetRelatives = $streetField->getRelatives();

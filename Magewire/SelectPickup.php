@@ -112,7 +112,11 @@ class SelectPickup extends Component
             'city' => $shippingAddress->getCity(),
             'housenumber' => $street[1] ?? ''
         ];
-        $locations = $this->pickupLocations->get($data);
+        try {
+            $locations = $this->pickupLocations->get($data);
+        } catch (\TIG\PostNL\Webservices\Api\Exception $e) {
+            return [];
+        }
         return $this->convertResponse($locations);
     }
 
