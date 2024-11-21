@@ -193,6 +193,9 @@ class SelectTimeframe extends Component
             // Replace type with the value from input
             $request['type'] = $shippingPoint[0];
         }
+        if ($request['type'] === 'gp' || $request['type'] === 'eps') {
+            $request['type'] = strtoupper($request['type']);
+        }
         if (!isset($request['date'])) {
             $request['date'] = $this->checkoutSession->getPostNLDeliveryDate();
         }
