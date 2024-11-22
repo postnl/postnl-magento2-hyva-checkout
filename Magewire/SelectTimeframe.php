@@ -166,7 +166,7 @@ class SelectTimeframe extends Component
             return false;
         }
 
-        $shippingPoint = explode('_', $value);
+        $shippingPoint = explode('__', $value);
 
         // Simulate request data from Magento checkout
         $shipping = $quote->getShippingAddress();
@@ -193,9 +193,8 @@ class SelectTimeframe extends Component
             // Replace type with the value from input
             $request['type'] = $shippingPoint[0];
         }
-        if ($request['type'] === 'gp' || $request['type'] === 'eps') {
-            $request['type'] = strtoupper($request['type']);
-        }
+        // Update request type
+        $request['type'] = $this->handleRequestType($request['type']);
         if (!isset($request['date'])) {
             $request['date'] = $this->checkoutSession->getPostNLDeliveryDate();
         }
@@ -240,7 +239,7 @@ class SelectTimeframe extends Component
                 ];
                 $fee = $this->feeCalculator->get($dayInfo);
                 $timeframe = new Delivery\Timeframe(
-                    implode('_', $key),
+                    implode('__', $key),
                     $dayInfo['from_friendly'] . ' - ' . $dayInfo['to_friendly'],
                     $dayInfo['option'] ?? null,
                     $fee > 0 ? $this->priceHelper->currency($fee,true,false) : null
@@ -274,7 +273,7 @@ class SelectTimeframe extends Component
                         $key = [$timeframes[0]->getOptions()[0]->getValue()];
                     }
                 }
-                $this->deliveryTimeframe = implode('_', $key);
+                $this->deliveryTimeframe = implode('__', $key);
             }
             if ($postnlOrder->getIsStatedAddressOnly() > 0) {
                 $this->statedOnly = 1;
@@ -306,6 +305,29 @@ class SelectTimeframe extends Component
     {
         $fee = $this->shippingOptions->getStatedAddressOnlyFee();
         return $fee > 0 ? $this->priceHelper->currency($fee) : null;
+    }
+
+    /**
+     * This is a deprecation that goes from Tig js files where type is changed to other string.
+     * Probably need to handle original extension more correctly, but will leave it for the next iteration, when
+     * such functionality will be updated. OrderParams should be changed as well.
+     */
+    private function handleRequestType(string $type): string
+    {
+        switch ($type) {
+            case 'gp':
+                return 'GP';
+            case 'eps':
+                return 'EPS';
+            case 'letterbox_package':
+                return 'Letterbox Package';
+            case 'boxable_packets':
+                return 'Boxable Packet';
+            case 'international_packet':
+                return 'International Packet';
+        }
+        // fallback, default
+        return $type;
     }
 
 }
