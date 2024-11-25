@@ -92,8 +92,10 @@ class SelectPickup extends Component
 
     public function isLetterboxPackage(): bool
     {
-        $products = $this->checkoutSession->getQuote()->getAllItems();
-        return $this->letterboxPackage->isLetterboxPackage($products, false);
+        $quote = $this->checkoutSession->getQuote();
+        $products = $quote->getAllItems();
+        $country = $quote->getShippingAddress()->getCountryId();
+        return $country === 'NL' && $this->letterboxPackage->isLetterboxPackage($products, false);
     }
 
     /**
