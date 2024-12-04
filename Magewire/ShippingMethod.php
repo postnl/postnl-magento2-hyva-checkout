@@ -10,6 +10,8 @@ use PostNL\HyvaCheckout\Model\QuoteOrderRepository;
 use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
 use PostNL\HyvaCheckout\ViewModel\ShippingView;
 use TIG\PostNL\Config\Provider\ShippingOptions;
+use TIG\PostNL\Service\Shipping\BoxablePackets;
+use TIG\PostNL\Service\Shipping\InternationalPacket;
 
 class ShippingMethod extends Component implements EvaluationInterface
 {
@@ -34,23 +36,37 @@ class ShippingMethod extends Component implements EvaluationInterface
     private QuoteOrderRepository $postnlOrderRepository;
     private ShippingView $shippingView;
     private ShippingOptions $shippingOptions;
+    private BoxablePackets $boxablePackets;
+    private InternationalPacket $internationalPacket;
 
     public function __construct(
         CheckoutSession $checkoutSession,
         QuoteOrderRepository $postnlOrderRepository,
         ShippingView $shippingView,
-        ShippingOptions $shippingOptions
+        ShippingOptions $shippingOptions,
+        BoxablePackets $boxablePackets,
+        InternationalPacket $internationalPacket
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->postnlOrderRepository = $postnlOrderRepository;
         $this->shippingView = $shippingView;
         $this->shippingOptions = $shippingOptions;
+        $this->boxablePackets = $boxablePackets;
+        $this->internationalPacket = $internationalPacket;
     }
 
     public function canDisplayPickup(): bool
     {
         $countryId = $this->checkoutSession->getQuote()->getShippingAddress()->getCountryId();
-        return ($countryId === 'NL' || $countryId === 'BE') && $this->shippingOptions->isPakjegemakActive($countryId);
+        $result = ($countryId === 'NL' || $countryId === 'BE') && $this->shippingOptions->isPakjegemakActive($countryId);
+        if ($result && $countryId === 'BE') {
+            $products = $this->checkoutSession->getQuote()->getAllItems();
+            // Disable pickup locations for Packets
+            if ($this->internationalPacket->canFixInTheBox($products) || $this->boxablePackets->canFixInTheBox($products)) {
+                $result = false;
+            }
+        }
+        return $result;
     }
 
     public function boot(): void
