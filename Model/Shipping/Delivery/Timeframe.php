@@ -43,6 +43,8 @@ class Timeframe
                 return __('Sunday');
             case 'today':
                 return __('Fast Delivery');
+            case 'noon':
+                return __('Morning');
             default:
                 return '';
         }
