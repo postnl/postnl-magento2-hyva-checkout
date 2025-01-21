@@ -1,0 +1,119 @@
+<?php
+use PostNL\HyvaCheckout\Magewire\SelectPickup;
+use PostNL\HyvaCheckout\ViewModel\CheckoutView;
+use PostNL\HyvaCheckout\ViewModel\ShippingView;
+
+/** @var \Magento\Framework\Escaper $escaper */
+/** @var \Magento\Framework\View\Element\Template $block */
+/** @var \Hyva\Theme\Model\ViewModelRegistry $viewModels */
+/** @var SelectPickup $magewire */
+/** @var CheckoutView $checkoutView */
+
+/** @var \Hyva\PostNL\ViewModel\Location $locationViewModel */
+//$locationViewModel = $viewModels->require(\Hyva\PostNL\ViewModel\Location::class);
+$checkoutView = $viewModels->require(CheckoutView::class);
+
+/** @var ShippingView $shippingViewModel */
+$shippingViewModel = $viewModels->require(ShippingView::class);
+?>
+<div>
+    <?php if ($magewire->isOpen()): ?>
+        <div class="min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="sm:flex sm:items-start">
+                <div class="w-full border-2 border-postnl-gray-lighter">
+                    <?php if (!$magewire->isEditMode() && $location = $magewire->getSelectedLocation()): ?>
+                        <div class="p-4">
+                            <strong>
+                                <span class="text-lg underline"><?= $escaper->escapeHtml('Pickup') ?>:</span>
+                            </strong>
+                            <div>
+                                <strong>
+                                    <span class="tig-postnl-pickup-name"><?= $escaper->escapeHtml($location->getName()) ?></span>
+                                    <span class="tig-postnl-distance"><?= $escaper->escapeHtml($location->getDistance()) ?></span>
+                                </strong>
+                                <div class="tig-postnl-address-container">
+                                    <span class="tig-postnl-pickup-street"><?= $escaper->escapeHtml($location->getStreet()) ?></span>
+                                    <span class="tig-postnl-pickup-number"><?= $escaper->escapeHtml($location->getHouseNumber()) ?></span>
+                                    <span class="tig-postnl-pickup-number-addition"><?= $escaper->escapeHtml($location->getHouseNumberExt()) ?></span>
+                                    <span class="tig-postnl-pickup-city"><?= $escaper->escapeHtml($location->getCity()) ?></span>
+                                </div>
+                            </div>
+                            <div>
+                                <input type="radio"
+                                       id="edit-location"
+                                       value="1"
+                                       class="hidden peer"
+                                       wire:model="editMode">
+                                <label class="block cursor-pointer hover:underline text-lg text-postnl-orange-darker font-bold my-1" for="edit-location"><?= $escaper->escapeHtml(__('Change location')) ?></label>
+                            </div>
+                        </div>
+                    <?php elseif ($magewire->isLetterboxPackage()): ?>
+                        <strong><span><?= __('Pickup locations are disabled for Letterbox packages.') ?></span></strong>
+                    <?php else: ?>
+                        <?php foreach ($magewire->getLocations() as $location): ?>
+                            <div class="tig-postnl-pickup-row">
+
+                                <!-- NAME & DISTANCE -->
+                                <div class="tig-postlnl-pickup-name flex w-full bg-postnl-gray-light justify-between text-postnl-gray-darker
+                                py-3 px-4 border-t-2 border-b-2 border-postnl-gray-lighter">
+                                    <strong class="tig-postnl-pickup-name uppercase"><?= $escaper->escapeHtml($location->getName()) ?></strong>
+                                    <span class="tig-postnl-distance"><?= $escaper->escapeHtml($location->getDistance()) ?></span>
+                                </div>
+
+                                <!-- DEFAULT PICKUP -->
+                                <label class="tig-postnl-pickup-label grid items-start p-4">
+                                    <input type="radio"
+                                           id="location-<?= $escaper->escapeHtmlAttr($location->getValue()) ?>"
+                                           value="<?= $escaper->escapeHtmlAttr($location->getValue()) ?>"
+                                           class="col-span-1 peer"
+                                           required
+                                           wire:model="locationId">
+
+                                    <!-- ADDRESS -->
+                                    <div class="tig-postnl-address-container col-span-2 text-postnl-gray-darker text-left ml-4">
+                                        <span class="tig-postnl-pickup-street"><?= $escaper->escapeHtml($location->getStreet()) ?></span>
+                                        <span class="tig-postnl-pickup-number"><?= $escaper->escapeHtml($location->getHouseNumber()) ?></span>
+                                        <span class="tig-postnl-pickup-number-addition"><?= $escaper->escapeHtml($location->getHouseNumberExt()) ?></span>
+                                        <span class="tig-postnl-pickup-city"><?= $escaper->escapeHtml($location->getCity()) ?></span>
+                                        <!-- OPENING HOURS -->
+                                        <div x-data="{ open: false }" class="tig-postnl-pickup-hours-list text-postnl-gray-darker text-left mt-2"
+                                             id="location-dates-<?= $escaper->escapeHtmlAttr($location->getValue()) ?>">
+                                            <!-- OPENING HOURS -->
+                                            <div class="tig-postnl-pickup-hours-link text-postnl-orange hover:underline"
+                                                 @click.prevent="open = !open">
+                                            <span x-cloak x-show="!open" class="show cursor-pointer">
+                                                <?= $escaper->escapeHtml(__('Show opening hours')); ?>
+                                            </span>
+                                                <span x-cloak x-show="open" class="hide cursor-pointer">
+                                                <?= $escaper->escapeHtml(__('Hide opening hours')); ?>
+                                            </span>
+                                            </div>
+                                            <ul x-cloak x-show="open" class="bg-postnl-gray-light flex flex-wrap mt-2 p-4 border-2 border-postnl-gray-lighter rounded-lg">
+                                                <?php foreach ($location->getHours() as $openTime): ?>
+                                                    <li class="pickup-list-day w-1/2"><?= $escaper->escapeHtml($openTime['day']) ?></li>
+                                                    <?php foreach ($openTime['hours'] as $hours): ?>
+                                                        <li class="pickup-list-time w-1/2"><?= $escaper->escapeHtml($hours) ?></li>
+                                                    <?php endforeach; ?>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <!-- DATE & TIME -->
+                                    <span class="tig-postnl-date-time-container col-span-1 flex flex-col text-postnl-gray-darker text-right">
+                                        <span class="tig-postnl-pickup-deliver"><?= $escaper->escapeHtml(__('From 15:00')) ?></span>
+                                        <span class="pickup-date">
+                                            <span class="pickup-date-date"><?= $escaper->escapeHtml($magewire->getPickupDate()) ?></span>
+                                        </span>
+                                    </span>
+
+                                </label>
+                            </div>
+
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+</div>

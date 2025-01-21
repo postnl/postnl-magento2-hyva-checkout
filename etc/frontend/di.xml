@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <type name="Hyva\Checkout\Model\Form\EntityForm\EavAttributeShippingAddressForm">
+        <arguments>
+            <argument name="entityFormModifiers" xsi:type="array">
+                <item name="postnl_form_changes" sortOrder="1001" xsi:type="object">
+                    PostNL\HyvaCheckout\Model\Form\EntityFormModifier\AddressChanges
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="PostNL\HyvaCheckout\Block\CheckoutBilling">
+        <arguments>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+
+    <type name="Hyva\Checkout\ViewModel\Checkout\Shipping\MethodList">
+        <plugin name="extend_shipping_price"
+                type="PostNL\HyvaCheckout\Plugin\HyvaCheckout\ViewModel\MethodListPlugin"
+                sortOrder="100" />
+    </type>
+
+    <type name="Hyva\Checkout\Model\Form\EntityForm\EavAttributeShippingAddressForm">
+        <plugin name="save_street_for_one_line_addresses"
+                type="PostNL\HyvaCheckout\Plugin\HyvaCheckout\Model\EntityFormPlugin"
+                sortOrder="100" />
+    </type>
+
+    <type name="Hyva\Checkout\Model\Form\EntityFormSaveServiceInterface">
+        <plugin name="trigger_street_update"
+                type="PostNL\HyvaCheckout\Plugin\HyvaCheckout\Model\EntityFormSaveServicePlugin"
+                sortOrder="100" />
+    </type>
+</config>

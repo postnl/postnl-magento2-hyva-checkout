@@ -1,0 +1,18 @@
+.tig-postnl-pickup-row {
+    &:first-child {
+        .tig-postlnl-pickup-name {
+            @apply border-t-0;
+        }
+    }
+}
+.shipping-timeframe {
+    &:first-child {
+        @apply border-t-0;
+    }
+}
+.postnl-type-selection {
+    @apply flex justify-between p-5 border-2 border-postnl-gray-lighter rounded-lg cursor-pointer bg-white hover:border-postnl-orange text-postnl-gray-middle;
+}
+.tig-postnl-pickup-label {
+    grid-template-columns: min-content auto auto auto;
+}

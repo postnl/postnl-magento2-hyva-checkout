@@ -1,0 +1,42 @@
+<?php
+use Hyva\Checkout\Model\Form\AbstractEntityForm;
+use Hyva\Checkout\Model\Form\EntityFieldInterface;
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Magento\Framework\View\Element\Template;
+use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
+
+/** @var Template $block */
+/** @var EntityFieldInterface $postcodeElement */
+/** @var ViewModelRegistry $viewModels */
+/** @var Escaper $escaper */
+/** @var AbstractEntityForm $form */
+
+$element = $block->getData('element');
+$form = $element->getForm();
+
+$postcodeField = $form->getField(CheckoutFieldsApi::POSTNL_POSTCODE);
+$houseNumberField = $form->getField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER);
+$houseNumberAdditionField = $form->getField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION);
+?>
+<div x-data="postnlAddressValidation($wire)"
+     x-init="initialize()"
+     class="w-full font-medium text-gray-500 space-y-4"
+     wire:key="postnl_validation_<?= $escaper->escapeHtmlAttr($form->getNamespace()) ?>"
+>
+    <?= $block->getChildHtml('messenger') ?>
+
+    <div class="flex flex-row gap-4">
+        <div class="flex-1">
+            <?= /* @noEscape */ $postcodeField->render() ?>
+        </div>
+
+        <div class="flex-1">
+            <?= /* @noEscape */ $houseNumberField->render() ?>
+        </div>
+
+        <div class="flex-1">
+            <?= /* @noEscape */ $houseNumberAdditionField->render() ?>
+        </div>
+    </div>
+</div>

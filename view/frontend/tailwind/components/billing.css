@@ -1,0 +1,6 @@
+section#billing-details {
+    @apply flex flex-col gap-3;
+    .section-title {
+        @apply !mb-3;
+    }
+}

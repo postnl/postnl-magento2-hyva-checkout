@@ -1,0 +1,29 @@
+<?php
+declare(strict_types=1);
+
+use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Framework\Escaper;
+use Hyva\Checkout\ViewModel\Checkout\AddressView;
+use PostNL\HyvaCheckout\ViewModel\PickupAddressRenderer;
+use PostNL\HyvaCheckout\Block\CheckoutBilling;
+
+/** @var CheckoutBilling $block */
+/** @var ViewModelRegistry $viewModels */
+/** @var AddressView $addressView */
+/** @var Escaper $escaper */
+
+$addressView = $viewModels->require(AddressView\AddressViewBilling::class);
+$addressRenderer = $viewModels->require(PickupAddressRenderer::class);
+?>
+<div>
+    <?= /* @noEscape */ $addressView->renderView() ?>
+
+</div>
+<h2 class="section-title border-b border-gray-400 pb-1 mb-3 text-xl font-medium">
+    <?= $escaper->escapeHtml(__('Pickup')); ?>
+</h2>
+<div>
+    <address>
+        <?= /* @noEscape */ $addressRenderer->renderPickupAddress() ?>
+    </address>
+</div>
