@@ -1,6 +1,6 @@
 # PostNL_HyvaCheckout module
 
-Magento 2 Hyva Checkout compatibility extension for `tig/postnl-magento2` one.
+Magento 2 Hyva Checkout compatibility extension for `tig/postnl-magento2` 
 
 ## Installation details
 
