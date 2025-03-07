@@ -21,44 +21,50 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
         <div class="min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <div class="sm:flex sm:items-start">
                 <div class="w-full border-2 border-postnl-gray-lighter">
-                    <?php foreach ($magewire->getTimeframes() as $dayData): ?>
-                    <?php if ($dayData->getDate()): ?>
-                        <strong class="shipping-timeframe flex w-full bg-postnl-gray-light justify-start text-postnl-gray-darker
-                            py-3 px-4 border-t-2 border-b-2 border-postnl-gray-lighter">
-                            <span class="deliverydays-day uppercase"><?= $escaper->escapeHtml($dayData->getWeekDay()) ?>, </span>
-                            <span class="deliverydays-date"> <?= $escaper->escapeHtml($dayData->getDate()) ?></span>
-                        </strong>
-                    <?php endif; ?>
-                    <ul class="flex flex-col gap-2 p-4">
-                        <?php foreach ($dayData->getOptions() as $optionTimeframe): ?>
-                        <li class="flex items-center">
-                            <input type="radio"
-                                   id="timeframe-<?= $escaper->escapeHtmlAttr($optionTimeframe->getValue()) ?>"
-                                   value="<?= $escaper->escapeHtmlAttr($optionTimeframe->getValue()) ?>"
-                                   class="peer"
-                                   required
-                                   wire:model="deliveryTimeframe">
+                    <?php if (!$magewire->canSearch()): ?>
+                        <div class="p-4">
+                            <strong><?= $escaper->escapeHtml(__('Please enter a valid address to view the delivery timeframes.')) ?></strong>
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($magewire->getTimeframes() as $dayData): ?>
+                        <?php if ($dayData->getDate()): ?>
+                            <strong class="shipping-timeframe flex w-full bg-postnl-gray-light justify-start text-postnl-gray-darker
+                                py-3 px-4 border-t-2 border-b-2 border-postnl-gray-lighter">
+                                <span class="deliverydays-day uppercase"><?= $escaper->escapeHtml($dayData->getWeekDay()) ?>, </span>
+                                <span class="deliverydays-date"> <?= $escaper->escapeHtml($dayData->getDate()) ?></span>
+                            </strong>
+                        <?php endif; ?>
+                        <ul class="flex flex-col gap-2 p-4">
+                            <?php foreach ($dayData->getOptions() as $optionTimeframe): ?>
+                            <li class="flex items-center">
+                                <input type="radio"
+                                       id="timeframe-<?= $escaper->escapeHtmlAttr($optionTimeframe->getValue()) ?>"
+                                       value="<?= $escaper->escapeHtmlAttr($optionTimeframe->getValue()) ?>"
+                                       class="peer"
+                                       required
+                                       wire:model="deliveryTimeframe">
 
-                            <label for="timeframe-<?= $escaper->escapeHtmlAttr($optionTimeframe->getValue()) ?>"
-                                   class="timeframe-btn w-full flex justify-between ml-3 text-postnl-gray-darker">
-                                <span><?= $escaper->escapeHtml($optionTimeframe->getLabel()) ?></span>
-                                <div class="right-label">
-                                    <?php if ($optionTimeframe->getRightLabel()): ?>
-                                        <span><?= $escaper->escapeHtml($optionTimeframe->getRightLabel()) ?></span>
-                                        <?php if ($optionTimeframe->getFee()): ?>
-                                            (<span class="price">+ <?= $escaper->escapeHtml($optionTimeframe->getFee()) ?></span>)
+                                <label for="timeframe-<?= $escaper->escapeHtmlAttr($optionTimeframe->getValue()) ?>"
+                                       class="timeframe-btn w-full flex justify-between ml-3 text-postnl-gray-darker">
+                                    <span><?= $escaper->escapeHtml($optionTimeframe->getLabel()) ?></span>
+                                    <div class="right-label">
+                                        <?php if ($optionTimeframe->getRightLabel()): ?>
+                                            <span><?= $escaper->escapeHtml($optionTimeframe->getRightLabel()) ?></span>
+                                            <?php if ($optionTimeframe->getFee()): ?>
+                                                (<span class="price">+ <?= $escaper->escapeHtml($optionTimeframe->getFee()) ?></span>)
+                                            <?php endif; ?>
                                         <?php endif; ?>
-                                    <?php endif; ?>
-                                </div>
-                            </label>
-                        </li>
+                                    </div>
+                                </label>
+                            </li>
+                            <?php endforeach; ?>
+                        </ul>
                         <?php endforeach; ?>
-                    </ul>
-                    <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
-        <?php if ($magewire->canUseStatedAddressOnly()): ?>
+        <?php if ($magewire->canSearch() && $magewire->canUseStatedAddressOnly()): ?>
             <div class="extra-service-container my-8">
                 <div class="extra-service-header bg-postnl-gray-darker text-white py-3 px-4">
                     <span class="extra-service-label uppercase"><?= $escaper->escapeHtml('Extra service') ?></span>

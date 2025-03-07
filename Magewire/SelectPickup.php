@@ -6,6 +6,7 @@ use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Exception\LocalizedException;
 use Magewirephp\Magewire\Component;
 use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
+use PostNL\HyvaCheckout\Magewire\Helper\AddressRequest;
 use PostNL\HyvaCheckout\Model\QuoteOrderRepository;
 use PostNL\HyvaCheckout\Model\Shipping\Pickup\Location;
 use TIG\PostNL\Config\Provider\ShippingOptions;
@@ -15,6 +16,8 @@ use TIG\PostNL\Service\Shipping\PickupLocations;
 
 class SelectPickup extends Component
 {
+    use AddressRequest;
+
     private const LOCATIONS_LIMIT = 5;
     public bool $pickupSelected = false;
     public string $editMode = '1';
@@ -98,6 +101,18 @@ class SelectPickup extends Component
         return $country === 'NL' && $this->letterboxPackage->isLetterboxPackage($products, false);
     }
 
+    public function canSearch(): bool
+    {
+        $shippingAddress = $this->checkoutSession->getQuote()->getShippingAddress();
+        $requestData = $this->getRequestData($shippingAddress, true);
+
+        if(!is_array($requestData)){
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * @return Delivery\Day[]
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -106,16 +121,14 @@ class SelectPickup extends Component
     public function getLocations(): array
     {
         $shippingAddress = $this->checkoutSession->getQuote()->getShippingAddress();
-        $street = $shippingAddress->getStreet();
-        $data = [
-            'country' => $shippingAddress->getCountryId(),
-            'street' => $shippingAddress->getStreet(),
-            'postcode' => $shippingAddress->getPostcode(),
-            'city' => $shippingAddress->getCity(),
-            'housenumber' => $street[1] ?? ''
-        ];
+        $requestData = $this->getRequestData($shippingAddress, true);
+
+        if(!is_array($requestData)){
+            return [];
+        }
+
         try {
-            $locations = $this->pickupLocations->get($data);
+            $locations = $this->pickupLocations->get($requestData);
         } catch (\TIG\PostNL\Webservices\Api\Exception $e) {
             return [];
         }
