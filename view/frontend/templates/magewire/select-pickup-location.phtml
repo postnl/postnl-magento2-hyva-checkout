@@ -24,7 +24,7 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
                     <?php if (!$magewire->isEditMode() && $location = $magewire->getSelectedLocation()): ?>
                         <div class="p-4">
                             <strong>
-                                <span class="text-lg underline"><?= $escaper->escapeHtml('Pickup') ?>:</span>
+                                <span class="text-lg underline"><?= $escaper->escapeHtml(__('Pickup')) ?>:</span>
                             </strong>
                             <div>
                                 <strong>
@@ -52,7 +52,7 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
                     <?php else: ?>
                         <?php if (!$magewire->canSearch()): ?>
                             <div class="p-4">
-                                <strong><?= $escaper->escapeHtml(__('Please enter a valid address to view the pickup locations.')) ?></strong>
+                                <span class="font-fold"><?= $escaper->escapeHtml(__('Please enter a valid address to view the pickup locations.')) ?></span>
                             </div>
                         <?php else: ?>
                             <?php foreach ($magewire->getLocations() as $location): ?>

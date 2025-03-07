@@ -23,7 +23,7 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
                 <div class="w-full border-2 border-postnl-gray-lighter">
                     <?php if (!$magewire->canSearch()): ?>
                         <div class="p-4">
-                            <strong><?= $escaper->escapeHtml(__('Please enter a valid address to view the delivery timeframes.')) ?></strong>
+                            <span class="font-fold"><?= $escaper->escapeHtml(__('Please enter a valid address to view the delivery timeframes.')) ?></span>
                         </div>
                     <?php else: ?>
                         <?php foreach ($magewire->getTimeframes() as $dayData): ?>
@@ -67,7 +67,7 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
         <?php if ($magewire->canSearch() && $magewire->canUseStatedAddressOnly()): ?>
             <div class="extra-service-container my-8">
                 <div class="extra-service-header bg-postnl-gray-darker text-white py-3 px-4">
-                    <span class="extra-service-label uppercase"><?= $escaper->escapeHtml('Extra service') ?></span>
+                    <span class="extra-service-label uppercase"><?= $escaper->escapeHtml(__('Extra service')) ?></span>
                 </div>
 
                 <div class="only-stated-address flex items-center p-4 border border-postnl-gray-lighter">
