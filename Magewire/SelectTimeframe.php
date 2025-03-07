@@ -124,6 +124,9 @@ class SelectTimeframe extends Component
         }
 
         $timeframes = $this->convertResponse($this->timeframeResolver->processTimeframes($requestData));
+
+        $this->selectFirstTimeframeOption($timeframes);
+
         return $timeframes;
     }
 
@@ -320,6 +323,18 @@ class SelectTimeframe extends Component
     {
         $fee = $this->shippingOptions->getStatedAddressOnlyFee();
         return $fee > 0 ? $this->priceHelper->currency($fee) : null;
+    }
+
+    private function selectFirstTimeframeOption(array $timeframes): void
+    {
+        if (count($timeframes) > 0 && empty($this->deliveryTimeframe)) {
+            $firstTimeframe = reset($timeframes);
+            $options = $firstTimeframe->getOptions();
+            if (count($options) > 0) {
+                $this->deliveryTimeframe = $options[0]->getValue();
+                $this->updatedDeliveryTimeframe($this->deliveryTimeframe);
+            }
+        }
     }
 
     /**
