@@ -23,7 +23,7 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
                 <div class="w-full border-2 border-postnl-gray-lighter">
                     <?php if (!$magewire->canSearch()): ?>
                         <div class="p-4">
-                            <span class="font-fold"><?= $escaper->escapeHtml(__('Please enter a valid address to view the delivery timeframes.')) ?></span>
+                            <span class="font-bold text-sm"><?= $escaper->escapeHtml(__('Please enter a valid address to view the delivery timeframes.')) ?></span>
                         </div>
                     <?php else: ?>
                         <?php foreach ($magewire->getTimeframes() as $dayData): ?>

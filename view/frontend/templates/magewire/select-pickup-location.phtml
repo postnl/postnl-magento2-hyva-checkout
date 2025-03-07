@@ -52,7 +52,7 @@ $shippingViewModel = $viewModels->require(ShippingView::class);
                     <?php else: ?>
                         <?php if (!$magewire->canSearch()): ?>
                             <div class="p-4">
-                                <span class="font-fold"><?= $escaper->escapeHtml(__('Please enter a valid address to view the pickup locations.')) ?></span>
+                                <span class="font-bold text-sm"><?= $escaper->escapeHtml(__('Please enter a valid address to view the pickup locations.')) ?></span>
                             </div>
                         <?php else: ?>
                             <?php foreach ($magewire->getLocations() as $location): ?>
