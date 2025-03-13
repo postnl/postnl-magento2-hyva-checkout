@@ -159,7 +159,14 @@ class SelectPickup extends Component
             } else {
                 // Default display - check if pickup should be selected first
                 $countryId = $shipping->getAddress()->getCountryId();
-                if (($countryId === 'NL' || $countryId === 'BE') && $this->shippingOptions->isPakjegemakDefault($countryId)) {
+                $isDefaultPickupEnabled = $this->shippingOptions->isPakjegemakDefault($countryId);
+                if ($isDefaultPickupEnabled && (
+                        ($countryId === 'NL' || $countryId === 'BE') ||
+                        ($this->shippingOptions->isPakjegemakGlobalActive()
+                            && in_array($countryId, $this->shippingOptions->getPakjegemakGlobalCountries(), true)
+                        )
+                    )
+                ) {
                     // Pickup is default - do not update anything
                     $this->pickupSelected = true;
                 }

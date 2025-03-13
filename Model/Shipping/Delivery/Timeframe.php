@@ -39,10 +39,6 @@ class Timeframe
                 return __('Daytime');
             case 'evening':
                 return __('Evening');
-            case 'sunday':
-                return __('Sunday');
-            case 'today':
-                return __('Fast Delivery');
             case 'noon':
                 return __('Morning');
             default:
