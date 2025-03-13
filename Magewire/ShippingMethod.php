@@ -66,6 +66,11 @@ class ShippingMethod extends Component implements EvaluationInterface
                 $result = false;
             }
         }
+        if (!$result && $this->shippingOptions->isPakjegemakGlobalActive()
+            && in_array($countryId, $this->shippingOptions->getPakjegemakGlobalCountries(), true)
+        ) {
+            $result = true;
+        }
         return $result;
     }
 
