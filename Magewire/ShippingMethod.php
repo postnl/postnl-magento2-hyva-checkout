@@ -61,7 +61,8 @@ class ShippingMethod extends Component implements EvaluationInterface
 
     public function canDisplayPickup(): bool
     {
-        $countryId = $this->checkoutSession->getQuote()->getShippingAddress()->getCountryId();
+        $shippingAddress = $this->checkoutSession->getQuote()->getShippingAddress();
+        $countryId = $shippingAddress->getCountryId();
         $result = $this->pickupValidator->isPickupEnabledForCountry($countryId);
         if ($result && $countryId === 'BE') {
             $products = $this->checkoutSession->getQuote()->getAllItems();
@@ -69,6 +70,9 @@ class ShippingMethod extends Component implements EvaluationInterface
             if ($this->internationalPacket->canFixInTheBox($products) || $this->boxablePackets->canFixInTheBox($products)) {
                 $result = false;
             }
+        }
+        if ($result && !$this->pickupValidator->isAddressFilled($shippingAddress)) {
+            $result = false;
         }
         return $result;
     }
