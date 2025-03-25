@@ -2,6 +2,7 @@
 use Hyva\Checkout\Model\Form\AbstractEntityForm;
 use Hyva\Checkout\Model\Form\EntityFieldInterface;
 use Hyva\Theme\Model\ViewModelRegistry;
+use Magento\Customer\Api\Data\AddressInterface;
 use Magento\Framework\Escaper;
 use Magento\Framework\View\Element\Template;
 use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
@@ -15,7 +16,7 @@ use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
 $element = $block->getData('element');
 $form = $element->getForm();
 
-$postcodeField = $form->getField(CheckoutFieldsApi::POSTNL_POSTCODE);
+$postcodeField = $form->getField(AddressInterface::POSTCODE);
 $houseNumberField = $form->getField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER);
 $houseNumberAdditionField = $form->getField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION);
 ?>

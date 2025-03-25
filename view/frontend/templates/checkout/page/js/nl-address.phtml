@@ -19,7 +19,7 @@ $checkoutView = $viewModels->require(CheckoutView::class);
 
         return {
             address: {
-                postnl_postcode: wire.address.postnl_postcode,
+                postcode: wire.address.postcode,
                 postnl_housenumber: wire.address.postnl_housenumber
             },
 
@@ -48,7 +48,7 @@ $checkoutView = $viewModels->require(CheckoutView::class);
 
                     if (validationResults.every(r => r === true)) {
                         inputChangeTimeout = setTimeout(async () => {
-                            const postcode = this.address.postnl_postcode.trim();
+                            const postcode = this.address.postcode.trim();
                             const houseNumber = this.address.postnl_housenumber.trim();
                             const url = `<?= $escaper->escapeJs($checkoutView->getCheckoutUrl('address_postcode')) ?>`;
 
@@ -73,7 +73,7 @@ $checkoutView = $viewModels->require(CheckoutView::class);
                             }
 
                             const addressLocal = this.getAddressParts(response);
-                            wire.sync('address.<?= $escaper->escapeJs(CheckoutFieldsApi::POSTNL_POSTCODE) ?>', JSON.stringify(addressLocal));
+                            wire.sync('address.<?= $escaper->escapeJs(CheckoutFieldsApi::POSTNL_ADDRESS) ?>', JSON.stringify(addressLocal));
 
                         }, options.validationTimeout);
 
@@ -105,7 +105,7 @@ $checkoutView = $viewModels->require(CheckoutView::class);
 
                     validators: {
                         validateValidAddressInput: (ref, value) => {
-                            if (ref === "<?= $escaper->escapeJs(CheckoutFieldsApi::POSTNL_POSTCODE) ?>") {
+                            if (ref === "<?= $escaper->escapeJs(\Magento\Quote\Api\Data\AddressInterface::KEY_POSTCODE) ?>") {
                                 return !value || this.postcodeRegex.test(value);
                             }
                             else if (ref === "<?= $escaper->escapeJs(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER) ?>") {

@@ -8,7 +8,6 @@ use Magewirephp\Magewire\Component;
 use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
 use PostNL\HyvaCheckout\Model\QuoteOrderRepository;
 use PostNL\HyvaCheckout\Model\Shipping\Pickup\Location;
-use TIG\PostNL\Config\Provider\ShippingOptions;
 use TIG\PostNL\Service\Action\OrderSave;
 use TIG\PostNL\Service\Shipment\PickupValidator;
 use TIG\PostNL\Service\Shipping\LetterboxPackage;
@@ -40,7 +39,6 @@ class SelectPickup extends Component
     private OrderSave $orderSave;
     private LetterboxPackage $letterboxPackage;
     private PickupLocations $pickupLocations;
-    private ShippingOptions $shippingOptions;
     private PickupValidator $pickupValidator;
 
     public function __construct(
@@ -49,7 +47,6 @@ class SelectPickup extends Component
         OrderSave $orderSave,
         LetterboxPackage $letterboxPackage,
         PickupLocations $pickupLocations,
-        ShippingOptions $shippingOptions,
         PickupValidator $pickupValidator
     ) {
         $this->checkoutSession = $checkoutSession;
@@ -57,7 +54,6 @@ class SelectPickup extends Component
         $this->orderSave = $orderSave;
         $this->letterboxPackage = $letterboxPackage;
         $this->pickupLocations = $pickupLocations;
-        $this->shippingOptions = $shippingOptions;
         $this->pickupValidator = $pickupValidator;
     }
 
@@ -114,7 +110,7 @@ class SelectPickup extends Component
         $data = [
             'country' => $shippingAddress->getCountryId(),
             'street' => $shippingAddress->getStreet(),
-            'postcode' => $shippingAddress->getPostcode(),
+            'postcode' => (string)$shippingAddress->getPostcode(),
             'city' => $shippingAddress->getCity(),
             'housenumber' => $street[1] ?? ''
         ];
