@@ -43,9 +43,8 @@ class AddressChanges extends AbstractEntityFormModifier
             $form->getField(CheckoutFieldsApi::POSTNL_ADDRESS)->show();
 
             $form->getField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER)->enable();
-            $form->getField(CheckoutFieldsApi::POSTNL_POSTCODE)->enable();
 
-            $postcode = $form->getField(CheckoutFieldsApi::POSTNL_POSTCODE)->getValue();
+            $postcode = $form->getField(AddressInterface::POSTCODE)->getValue();
             $housenumber = $form->getField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER)->getValue();
 
             // Hide original postcode
@@ -82,7 +81,7 @@ class AddressChanges extends AbstractEntityFormModifier
     public function validateUpdatedFields($form, $attributeField, $form2, $addressType)
     {
         try {
-            $address = \json_decode((string)$form->getField(CheckoutFieldsApi::POSTNL_POSTCODE)->getValue(), true, JSON_THROW_ON_ERROR);
+            $address = \json_decode((string)$form->getField(CheckoutFieldsApi::POSTNL_ADDRESS)->getValue(), true, JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
             $address = null;
         }
@@ -101,14 +100,8 @@ class AddressChanges extends AbstractEntityFormModifier
             $this->updateFormField($form, AddressInterface::POSTCODE, $address, AddressInterface::POSTCODE);
             $this->updateFormField($form, AddressInterface::CITY, $address, AddressInterface::CITY);
             $this->updateFormField($form, AddressInterface::REGION, $address, 'province');
-            $this->updateFormField($form, CheckoutFieldsApi::POSTNL_POSTCODE, $address, AddressInterface::POSTCODE);
             $this->updateFormField($form, CheckoutFieldsApi::POSTNL_HOUSE_NUMBER, $address, 'houseNumber');
             $this->updateFormField($form, CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION, $address, 'houseNumberAddition');
-        } else {
-            $postcode = $form->getField(AddressInterface::POSTCODE);
-            if ($postcode && $postcode->getValue()) {
-                $form->getField(CheckoutFieldsApi::POSTNL_POSTCODE)->setValue($postcode->getValue());
-            }
         }
     }
 
@@ -133,22 +126,12 @@ class AddressChanges extends AbstractEntityFormModifier
             ]
         ]);
 
-        // Create two data carrier fields and hide them, so we can render both manually.
-        $postcode = $form->createField(CheckoutFieldsApi::POSTNL_POSTCODE, 'text', [
-            'data' => [
-                'label' => __('Zipcode')->__toString(),
-                'is_auto_save' => false,
-                'auto_complete' => 'off',
-                'is_required' => true,
-                'value' => $postcodeField->getValue()
-            ]
-        ])
-            ->setAttribute('x-ref', CheckoutFieldsApi::POSTNL_POSTCODE)
-            ->setAttribute('x-model', 'address.'. CheckoutFieldsApi::POSTNL_POSTCODE)
-            ->setValidationRule('validate-postcode')
-            ->setAttribute('@change', 'onChangeInput')
-            ->hide();
+        // Adjust postcode to our feelings
+        $postcodeField
+            ->setAttribute('x-model', 'address.'. AddressInterface::POSTCODE)
+            ->setAttribute('x-ref', AddressInterface::POSTCODE);
 
+        // Create custom data carrier fields and hide them, so we can render both manually.
         $houseNumber = $form->createField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER, 'text', [
             'data' => [
                 'label' => __('House number')->__toString(),
@@ -160,7 +143,6 @@ class AddressChanges extends AbstractEntityFormModifier
             ->setAttribute('x-ref', CheckoutFieldsApi::POSTNL_HOUSE_NUMBER)
             ->setAttribute('x-model', 'address.'. CheckoutFieldsApi::POSTNL_HOUSE_NUMBER)
             ->setValidationRule('validate-house-number')
-            ->setAttribute('@change', 'onChangeInput')
             ->hide();
 
         $houseNumberAddition = $form->createField(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION, 'text', [
@@ -172,7 +154,6 @@ class AddressChanges extends AbstractEntityFormModifier
             ]
         ])
             ->setAttribute('x-ref', CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION)
-            //->setAttribute('x-model', 'address.'. CheckoutFieldsApi::POSTNL_HOUSE_NUMBER_ADDITION)
             ->hide();
 
         // Check if we can load data from the relatives
@@ -189,7 +170,6 @@ class AddressChanges extends AbstractEntityFormModifier
         }
 
         $form->addField($address);
-        $form->addField($postcode);
         $form->addField($houseNumber);
         $form->addField($houseNumberAddition);
 
@@ -199,7 +179,7 @@ class AddressChanges extends AbstractEntityFormModifier
     private function sortFields(AbstractEntityForm $form): void
     {
         $fields = $form->getFields();
-        $dependencies = [AddressInterface::STREET, AddressInterface::POSTCODE, AddressInterface::CITY];
+        $dependencies = [AddressInterface::STREET, AddressInterface::CITY];
         $result = [];
         $pushed = [];
         $push = true;
