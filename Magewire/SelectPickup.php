@@ -8,8 +8,8 @@ use Magewirephp\Magewire\Component;
 use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
 use PostNL\HyvaCheckout\Model\QuoteOrderRepository;
 use PostNL\HyvaCheckout\Model\Shipping\Pickup\Location;
-use TIG\PostNL\Config\Provider\ShippingOptions;
 use TIG\PostNL\Service\Action\OrderSave;
+use TIG\PostNL\Service\Shipment\PickupValidator;
 use TIG\PostNL\Service\Shipping\LetterboxPackage;
 use TIG\PostNL\Service\Shipping\PickupLocations;
 
@@ -39,7 +39,7 @@ class SelectPickup extends Component
     private OrderSave $orderSave;
     private LetterboxPackage $letterboxPackage;
     private PickupLocations $pickupLocations;
-    private ShippingOptions $shippingOptions;
+    private PickupValidator $pickupValidator;
 
     public function __construct(
         CheckoutSession $checkoutSession,
@@ -47,14 +47,14 @@ class SelectPickup extends Component
         OrderSave $orderSave,
         LetterboxPackage $letterboxPackage,
         PickupLocations $pickupLocations,
-        ShippingOptions $shippingOptions
+        PickupValidator $pickupValidator
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->postnlOrderRepository = $postnlOrderRepository;
         $this->orderSave = $orderSave;
         $this->letterboxPackage = $letterboxPackage;
         $this->pickupLocations = $pickupLocations;
-        $this->shippingOptions = $shippingOptions;
+        $this->pickupValidator = $pickupValidator;
     }
 
     public function boot(): void
@@ -110,7 +110,7 @@ class SelectPickup extends Component
         $data = [
             'country' => $shippingAddress->getCountryId(),
             'street' => $shippingAddress->getStreet(),
-            'postcode' => $shippingAddress->getPostcode(),
+            'postcode' => (string)$shippingAddress->getPostcode(),
             'city' => $shippingAddress->getCity(),
             'housenumber' => $street[1] ?? ''
         ];
@@ -159,7 +159,7 @@ class SelectPickup extends Component
             } else {
                 // Default display - check if pickup should be selected first
                 $countryId = $shipping->getAddress()->getCountryId();
-                if (($countryId === 'NL' || $countryId === 'BE') && $this->shippingOptions->isPakjegemakDefault($countryId)) {
+                if ($this->pickupValidator->isDefaultPickupActive($countryId)) {
                     // Pickup is default - do not update anything
                     $this->pickupSelected = true;
                 }

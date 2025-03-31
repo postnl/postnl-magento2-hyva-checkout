@@ -10,6 +10,7 @@ use PostNL\HyvaCheckout\Model\QuoteOrderRepository;
 use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
 use PostNL\HyvaCheckout\ViewModel\ShippingView;
 use TIG\PostNL\Config\Provider\ShippingOptions;
+use TIG\PostNL\Service\Shipment\PickupValidator;
 use TIG\PostNL\Service\Shipping\BoxablePackets;
 use TIG\PostNL\Service\Shipping\InternationalPacket;
 
@@ -38,6 +39,7 @@ class ShippingMethod extends Component implements EvaluationInterface
     private ShippingOptions $shippingOptions;
     private BoxablePackets $boxablePackets;
     private InternationalPacket $internationalPacket;
+    private PickupValidator $pickupValidator;
 
     public function __construct(
         CheckoutSession $checkoutSession,
@@ -45,7 +47,8 @@ class ShippingMethod extends Component implements EvaluationInterface
         ShippingView $shippingView,
         ShippingOptions $shippingOptions,
         BoxablePackets $boxablePackets,
-        InternationalPacket $internationalPacket
+        InternationalPacket $internationalPacket,
+        PickupValidator $pickupValidator
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->postnlOrderRepository = $postnlOrderRepository;
@@ -53,18 +56,23 @@ class ShippingMethod extends Component implements EvaluationInterface
         $this->shippingOptions = $shippingOptions;
         $this->boxablePackets = $boxablePackets;
         $this->internationalPacket = $internationalPacket;
+        $this->pickupValidator = $pickupValidator;
     }
 
     public function canDisplayPickup(): bool
     {
-        $countryId = $this->checkoutSession->getQuote()->getShippingAddress()->getCountryId();
-        $result = ($countryId === 'NL' || $countryId === 'BE') && $this->shippingOptions->isPakjegemakActive($countryId);
+        $shippingAddress = $this->checkoutSession->getQuote()->getShippingAddress();
+        $countryId = $shippingAddress->getCountryId();
+        $result = $this->pickupValidator->isPickupEnabledForCountry($countryId);
         if ($result && $countryId === 'BE') {
             $products = $this->checkoutSession->getQuote()->getAllItems();
             // Disable pickup locations for Packets
             if ($this->internationalPacket->canFixInTheBox($products) || $this->boxablePackets->canFixInTheBox($products)) {
                 $result = false;
             }
+        }
+        if ($result && !$this->pickupValidator->isAddressFilled($shippingAddress)) {
+            $result = false;
         }
         return $result;
     }
@@ -80,7 +88,7 @@ class ShippingMethod extends Component implements EvaluationInterface
         // Validate if we can select pickup in case order was not saved
         if (!$postnlOrder->getEntityId()) {
             $countryId = $quote->getShippingAddress()->getCountryId();
-            if (($countryId === 'NL' || $countryId === 'BE') && $this->shippingOptions->isPakjegemakDefault($countryId)) {
+            if ($this->pickupValidator->isDefaultPickupActive($countryId)) {
                 $defaultType = CheckoutFieldsApi::DELIVERY_TYPE_PICKUP;
             }
         }
