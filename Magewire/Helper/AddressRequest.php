@@ -53,7 +53,7 @@ trait AddressRequest
         $data = [
             'country'  => $address->getCountryId(),
             'street'   => $street,
-            'postcode' => $address->getPostcode(),
+            'postcode' => (string)$address->getPostcode(),
             'city'     => $address->getCity(),
         ];
 

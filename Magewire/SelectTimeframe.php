@@ -13,6 +13,7 @@ use PostNL\HyvaCheckout\Model\Shipping\Delivery;
 use TIG\PostNL\Config\Provider\ShippingOptions;
 use TIG\PostNL\Service\Action\OrderSave;
 use TIG\PostNL\Service\Order\FeeCalculator;
+use TIG\PostNL\Service\Shipment\PickupValidator;
 use TIG\PostNL\Service\Timeframe\Resolver;
 
 class SelectTimeframe extends Component
@@ -42,6 +43,7 @@ class SelectTimeframe extends Component
     private OrderSave $orderSave;
     private Data $priceHelper;
     private ShippingOptions $shippingOptions;
+    private PickupValidator $pickupValidator;
 
     public function __construct(
         CheckoutSession $checkoutSession,
@@ -50,7 +52,8 @@ class SelectTimeframe extends Component
         QuoteOrderRepository $postnlOrderRepository,
         OrderSave $orderSave,
         Data $priceHelper,
-        ShippingOptions $shippingOptions
+        ShippingOptions $shippingOptions,
+        PickupValidator $pickupValidator
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->timeframeResolver = $timeframeResolver;
@@ -59,6 +62,7 @@ class SelectTimeframe extends Component
         $this->orderSave = $orderSave;
         $this->priceHelper = $priceHelper;
         $this->shippingOptions = $shippingOptions;
+        $this->pickupValidator = $pickupValidator;
     }
 
     public function boot(): void
@@ -151,7 +155,7 @@ class SelectTimeframe extends Component
             } else {
                 // Default display - check if pickup should be selected first
                 $countryId = $shipping->getAddress()->getCountryId();
-                if (($countryId === 'NL' || $countryId === 'BE') && $this->shippingOptions->isPakjegemakDefault($countryId)) {
+                if ($this->pickupValidator->isDefaultPickupActive($countryId)) {
                     // Pickup is default - do not update anything
                 } else {
                     $this->deliverySelected = true;
