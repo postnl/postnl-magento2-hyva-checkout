@@ -1,4 +1,4 @@
-Change location,Change location
+"Change location","Change location"
 "Do not deliver to neighbours","Do not deliver to neighbours"
 "Hide opening hours","Hide opening hours"
 "Show opening hours","Show opening hours"
@@ -7,3 +7,9 @@ Change location,Change location
 "Please enter a valid house number.","Please enter a valid house number."
 "Change location","Change location"
 "Sorry, we could not find your address with the zipcode and housenumber combination (%s). Please check the entered postcode and house number and correct them where necessary.","Sorry, we could not find your address with the zipcode and housenumber combination (%s). Please check the entered postcode and house number and correct them where necessary."
+"Pickup","Pickup"
+"Extra service","Extra service"
+"Please enter a valid address to view the pickup locations.","Please enter a valid address to view the pickup locations."
+"Please enter a valid address to view the delivery timeframes.","Please enter a valid address to view the delivery timeframes."
+"Please select a pickup location.","Please select a pickup location."
+"Please select a delivery timeframe.","Please select a delivery timeframe."

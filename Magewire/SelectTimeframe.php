@@ -7,6 +7,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Pricing\Helper\Data;
 use Magewirephp\Magewire\Component;
 use PostNL\HyvaCheckout\Api\CheckoutFieldsApi;
+use PostNL\HyvaCheckout\Magewire\Helper\AddressRequest;
 use PostNL\HyvaCheckout\Model\QuoteOrderRepository;
 use PostNL\HyvaCheckout\Model\Shipping\Delivery;
 use TIG\PostNL\Config\Provider\ShippingOptions;
@@ -17,6 +18,8 @@ use TIG\PostNL\Service\Timeframe\Resolver;
 
 class SelectTimeframe extends Component
 {
+    use AddressRequest;
+
     public bool $deliverySelected = false;
 
     public string $deliveryTimeframe = '';
@@ -98,6 +101,18 @@ class SelectTimeframe extends Component
         return $this->deliverySelected;
     }
 
+    public function canSearch(): bool
+    {
+        $shippingAddress = $this->checkoutSession->getQuote()->getShippingAddress();
+        $requestData = $this->getRequestData($shippingAddress, false);
+
+        if(!is_array($requestData)){
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * @return Delivery\Day[]
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -106,13 +121,16 @@ class SelectTimeframe extends Component
     public function getTimeframes(): array
     {
         $shippingAddress = $this->checkoutSession->getQuote()->getShippingAddress();
-        $data = [
-            'country' => $shippingAddress->getCountryId(),
-            'street' => $shippingAddress->getStreet(),
-            'postcode' => $shippingAddress->getPostcode(),
-            'city' => $shippingAddress->getCity(),
-        ];
-        $timeframes = $this->convertResponse($this->timeframeResolver->processTimeframes($data));
+        $requestData = $this->getRequestData($shippingAddress, false);
+
+        if(!is_array($requestData)){
+            return [];
+        }
+
+        $timeframes = $this->convertResponse($this->timeframeResolver->processTimeframes($requestData));
+
+        $this->selectFirstTimeframeOption($timeframes);
+
         return $timeframes;
     }
 
@@ -309,6 +327,18 @@ class SelectTimeframe extends Component
     {
         $fee = $this->shippingOptions->getStatedAddressOnlyFee();
         return $fee > 0 ? $this->priceHelper->currency($fee) : null;
+    }
+
+    private function selectFirstTimeframeOption(array $timeframes): void
+    {
+        if (count($timeframes) > 0 && empty($this->deliveryTimeframe)) {
+            $firstTimeframe = reset($timeframes);
+            $options = $firstTimeframe->getOptions();
+            if (count($options) > 0) {
+                $this->deliveryTimeframe = $options[0]->getValue();
+                $this->updatedDeliveryTimeframe($this->deliveryTimeframe);
+            }
+        }
     }
 
     /**

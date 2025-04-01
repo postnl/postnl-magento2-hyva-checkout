@@ -32,6 +32,9 @@ class ShippingMethod extends Component implements EvaluationInterface
         //'postnl_unselect_pickup_point' => 'unselectPickupPoint',
     ];
 
+    protected $loader = [
+        'updatedType' => 'Saving selected option...',
+    ];
 
     private CheckoutSession $checkoutSession;
     private QuoteOrderRepository $postnlOrderRepository;
@@ -111,6 +114,41 @@ class ShippingMethod extends Component implements EvaluationInterface
         $postnlOrder = $this->postnlOrderRepository->getByQuoteId($quote->getId());
         if (!$postnlOrder->getEntityId() || !$postnlOrder->getType()) {
             return $resultFactory->createErrorMessage((string)__('Please choose delivery options.'));
+        }
+
+        /**
+         * Validates delivery method selection consistency.
+         *
+         * This addresses a specific edge case in the checkout flow:
+         * When a user first selects a valid delivery option (e.g., selects 'Pickup' and chooses a location = correct),
+         * then switches to a different delivery type (e.g., 'Delivery timeframe')
+         * but doesn't complete the second selection before submitting
+         * the system would silently use the previously saved option.
+         *
+         * This validation ensures the UI selection matches what's stored in the order,
+         * requiring the user to complete their selection before proceeding.
+         */
+
+        // Determine delivery type selected in the current UI state
+        $currentSelectionIsPickup = $this->type === CheckoutFieldsApi::DELIVERY_TYPE_PICKUP;
+
+        // Check what's actually saved in the order
+        $savedOrderIsPickup = $postnlOrder->getIsPakjegemak();
+
+        // Detect mismatch between UI selection and saved order data
+        if ($currentSelectionIsPickup !== $savedOrderIsPickup) {
+            // User switched to pickup but hasn't selected a location yet
+            if ($currentSelectionIsPickup) {
+                if (empty($postnlOrder->getPgLocationCode())) {
+                    return $resultFactory->createErrorMessage((string)__('Please select a pickup location.'));
+                }
+            }
+            // User switched to delivery but hasn't selected a timeframe yet
+            else {
+                if (empty($postnlOrder->getDeliveryDate())) {
+                    return $resultFactory->createErrorMessage((string)__('Please select a delivery timeframe.'));
+                }
+            }
         }
 
         return $resultFactory->createSuccess();
