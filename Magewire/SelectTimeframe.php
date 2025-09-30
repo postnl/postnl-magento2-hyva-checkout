@@ -295,6 +295,7 @@ class SelectTimeframe extends Component
                     }
                 }
                 $this->deliveryTimeframe = implode('__', $key);
+                $this->saveDeliveryTimeframe($this->deliveryTimeframe);
             }
             if ($postnlOrder->getIsStatedAddressOnly() > 0) {
                 $this->statedOnly = 1;
