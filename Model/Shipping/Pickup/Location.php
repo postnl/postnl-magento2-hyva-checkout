@@ -83,6 +83,10 @@ class Location
         $result = [];
         foreach ($this->days as $dayKey) {
             if (isset($this->object->OpeningHours->$dayKey)) {
+                if (!property_exists($this->object->OpeningHours->$dayKey, 'string')) {
+                    continue;
+                }
+
                 $day = [
                     'day' => __($dayKey),
                     'hours' => []
