@@ -143,13 +143,10 @@ class SelectTimeframe extends Component
                 // Default display - check if pickup should be selected first
                 $countryId = $shipping->getAddress()->getCountryId();
 
-                if ($countryId === 'NL') {
-                    $products = $this->checkoutSession->getQuote()->getAllItems();
-
-                    if ($this->letterboxPackage->isLetterboxPackage($products)) {
-                        $this->deliverySelected = true;
-                    }
-                    // Pickup is not default - update
+                // Pickup is not default - update
+                $products = $this->checkoutSession->getQuote()->getAllItems();
+                if ($countryId === 'NL' && $this->letterboxPackage->isLetterboxPackage($products)) {
+                    $this->deliverySelected = true;
                 } elseif (!$this->pickupValidator->isDefaultPickupActive($countryId)) {
                     $this->deliverySelected = true;
                 }
