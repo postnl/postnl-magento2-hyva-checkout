@@ -29,7 +29,7 @@ class ShippingView implements ArgumentInterface
         $this->formatter = $formatter;
     }
 
-    public function getPriceFromAddressRequest(string $parcel = null): array
+    public function getPriceFromAddressRequest(?string $parcel = null): array
     {
         $shipping = $this->checkoutSession->getQuote()->getShippingAddress();
         $key = $shipping->getCountryId() . '_' . $shipping->getPostcode() . $parcel;

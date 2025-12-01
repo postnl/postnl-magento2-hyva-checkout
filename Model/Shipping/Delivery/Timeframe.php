@@ -12,8 +12,8 @@ class Timeframe
     public function __construct(
         string $value,
         string $label,
-        string $rightLabel = null,
-        string $fee = null
+        ?string $rightLabel = null,
+        ?string $fee = null
     ) {
         $this->value = $value;
         $this->label = $label;
