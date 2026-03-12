@@ -16,8 +16,8 @@ class Day
      */
     public function __construct(
         array $options,
-        string $date = null,
-        string $weekDay = null
+        ?string $date = null,
+        ?string $weekDay = null
     ) {
         $this->options = $options;
         $this->date = $date;
