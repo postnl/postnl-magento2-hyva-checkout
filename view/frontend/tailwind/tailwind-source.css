@@ -1,3 +1,23 @@
-@import "components/shipping.css";
-@import "components/billing.css";
-@import "components/postnl-button.css";
+@import "./components/shipping.css";
+@import "./components/billing.css";
+@import "./components/postnl-button.css";
+
+@theme {
+    --color-postnl-blue-darker: #001A73;
+    --color-postnl-blue: #3440b6;
+    --color-postnl-blue-lighter: #00A1E1;
+
+    --color-postnl-orange-primary: #F56900;
+    --color-postnl-orange-darker: #ED7000;
+    --color-postnl-orange: #FF8D00;
+    --color-postnl-orange-lighter: #FFAD00;
+
+    --color-postnl-gray-dark: #515165;
+    --color-postnl-gray-darker: #27324C;
+    --color-postnl-gray-middle: #66728A;
+    --color-postnl-gray: #ADB5C5;
+    --color-postnl-gray-lighter: #D4D9E3;
+    --color-postnl-gray-light: #F3F4F7;
+
+    --color-postnl-green: #43B02A;
+}
