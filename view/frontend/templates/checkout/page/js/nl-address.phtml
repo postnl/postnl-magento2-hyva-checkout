@@ -26,7 +26,7 @@ $checkoutView = $viewModels->require(CheckoutView::class);
             },
 
             searches: 0,
-            postcodeRegex: /[1-9][0-9]{3}\s*[a-z]{2}/i,
+            postcodeRegex: /^[1-9][0-9]{3}\s*[a-z]{2}$/i,
             houseNumberRegex: /[1-9]\d{0,4}(?:\D.*)?$/i,
 
             initialize: function() {
@@ -228,7 +228,7 @@ $checkoutView = $viewModels->require(CheckoutView::class);
                     validators: {
                         validateValidAddressInput: (ref, value) => {
                             if (ref === "<?= $escaper->escapeJs(\Magento\Quote\Api\Data\AddressInterface::KEY_POSTCODE) ?>") {
-                                return !value || this.postcodeRegex.test(value);
+                                return !value || this.postcodeRegex.test(value.trim());
                             }
                             else if (ref === "<?= $escaper->escapeJs(CheckoutFieldsApi::POSTNL_HOUSE_NUMBER) ?>") {
                                 return !value || this.houseNumberRegex.test(value);
